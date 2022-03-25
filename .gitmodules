@@ -7,9 +7,6 @@
 [submodule "libs/glfw"]
 	path = libs/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "libs/glew"]
-	path = libs/glew
-	url = https://github.com/nigels-com/glew.git
 [submodule "libs/stb"]
 	path = libs/stb
 	url = https://github.com/nothings/stb.git
