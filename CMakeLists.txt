@@ -3,14 +3,24 @@ project(MoneyHeist VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(MoneyHeist main.cpp)
+file(GLOB SRC_LIST CONFIGURE_DEPENDS
+    include/*.h
+    src/*.cpp
+)
+
+add_executable(MoneyHeist
+    ${SRC_LIST}
+    libs/glad/src/glad.c
+)
+
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 # add GLFW
 add_subdirectory(libs/glfw)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 target_include_directories(${PROJECT_NAME} PRIVATE libs/glfw/include)
 
-# # add GLAD
+# add GLAD
 target_include_directories(${PROJECT_NAME} PRIVATE libs/glad/include)
 
 # add GLM
