@@ -1,2 +1,5 @@
-build*
+.idea
 .vs*
+build
+cmake-build*
+out
