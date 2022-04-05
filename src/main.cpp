@@ -1,8 +1,11 @@
 #include <iostream>
-#include <string>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <memory>
+
+#include <imgui.h>
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
 
 class WindowParameters
 {
@@ -42,7 +45,7 @@ public:
     }
 };
 
-void windowInit() noexcept
+inline void windowInit() noexcept
 {
     if (!glfwInit())
     {
@@ -66,7 +69,7 @@ void windowInit() noexcept
     glfwMakeContextCurrent(Singleton<WindowParameters>::getInstance().mWindow);
 }
 
-void gladInit() noexcept
+inline void gladInit() noexcept
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -75,22 +78,72 @@ void gladInit() noexcept
     }
 }
 
+inline void imguiInit() noexcept
+{
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(Singleton<WindowParameters>::getInstance().mWindow, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+}
+
+inline void showFps() noexcept
+{
+    constexpr auto guiWidth = ImVec2{ 90.0f, 30.0f };
+
+    ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
+    ImGui::SetWindowPos({ Singleton<WindowParameters>::getInstance().mWidth - guiWidth.x, 0});
+    ImGui::SetWindowSize(guiWidth);
+    ImGui::TextColored({ 0.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::End();
+}
+
+inline void imguiNewFrame() noexcept
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+}
+
+inline void render() noexcept
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+inline void releaseMemory() noexcept
+{
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwTerminate();
+}
+
 int main()
 {
     windowInit();
     gladInit();
+    imguiInit();
+
+    ImVec4 clearColor = ImVec4(0.73f, 0.73f, 0.73f, 1.0f);
 
     glViewport(0, 0, Singleton<WindowParameters>::getInstance().mWidth, Singleton<WindowParameters>::getInstance().mHeight);
 
     while (!glfwWindowShouldClose(Singleton<WindowParameters>::getInstance().mWindow))
     {
+        imguiNewFrame();
+
         glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(0.6f, 0.5f, 1.0f, 1.0f);
+        glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 
         glViewport(0, 0, Singleton<WindowParameters>::getInstance().mWidth, Singleton<WindowParameters>::getInstance().mHeight);
+
+        showFps();
+
+        render();
 
         glfwPollEvents();
         glfwSwapBuffers(Singleton<WindowParameters>::getInstance().mWindow);
     }
-    glfwTerminate();
+
+    releaseMemory();
 }

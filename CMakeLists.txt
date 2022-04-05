@@ -10,28 +10,26 @@ file(GLOB SRC_LIST CONFIGURE_DEPENDS
 
 add_executable(${PROJECT_NAME}
     ${SRC_LIST}
-    libs/glad/src/glad.c
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE include)
+add_subdirectory(libs)
 
-# add GLFW
-add_subdirectory(libs/glfw)
-target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
-target_include_directories(${PROJECT_NAME} PRIVATE libs/glfw/include)
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    glfw
+    glad
+    glm
+    BulletDynamics
+    BulletCollision
+    LinearMath
+    imgui
+)
 
-# add GLAD
-target_include_directories(${PROJECT_NAME} PRIVATE libs/glad/include)
-
-# add GLM
-add_subdirectory(libs/glm)
-target_link_libraries(${PROJECT_NAME} PRIVATE glm)
-target_include_directories(${PROJECT_NAME} PRIVATE libs/glm)
-
-# add bullet3
-add_subdirectory(libs/bullet3)
-target_link_libraries(${PROJECT_NAME} PRIVATE BulletDynamics BulletCollision LinearMath)
-target_include_directories(${PROJECT_NAME} PRIVATE libs/bullet3/src)
-
-# add stb
-target_include_directories(${PROJECT_NAME} PRIVATE libs/stb)
+target_include_directories(${PROJECT_NAME} PRIVATE
+    include
+    libs/glfw/include
+    libs/glad/include
+    libs/glm
+    libs/bullet3/src
+    libs/stb
+    libs/imgui
+)
