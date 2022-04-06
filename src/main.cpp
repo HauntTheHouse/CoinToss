@@ -1,149 +1,153 @@
 #include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+#include <sstream>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
-#include <imgui.h>
-#include <backends/imgui_impl_glfw.h>
-#include <backends/imgui_impl_opengl3.h>
+#include "WindowParameters.h"
+#include "Data.h"
+#include "Singleton.h"
+#include "Gui.h"
 
-class WindowParameters
+void glfwErrorCallback(int error, const char* description)
 {
-public:
-    WindowParameters() = default;
-    ~WindowParameters()
-    {
-        glfwDestroyWindow(mWindow);
-    }
+    std::cerr << "GLFW error " << error << ": " << description << std::endl;
+}
 
-    void init(int aWidth, int aHeigth, const std::string& aName)
-    {
-        mWidth = aWidth;
-        mHeight = aHeigth;
-        mName = aName;
-        mWindow = glfwCreateWindow(mWidth, mHeight, mName.c_str(), nullptr, nullptr);
-    }
-
-    GLFWwindow* mWindow{ nullptr };
-    int mWidth{ 0 };
-    int mHeight{ 0 };
-    std::string mName;
-};
-
-template<typename T>
-class Singleton
+inline void initGlfw() noexcept
 {
-public:
-    Singleton() = delete;
-    Singleton(const Singleton&) = delete;
-    Singleton& operator=(const Singleton&) = delete;
+    glfwSetErrorCallback(glfwErrorCallback);
 
-    static T& getInstance()
-    {
-        static T instance;
-        return instance;
-    }
-};
-
-inline void windowInit() noexcept
-{
-    if (!glfwInit())
-    {
-        std::cout << "Failed to init GLFW" << std::endl;
-        return;
-    }
+    if (!glfwInit()) exit(-1);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-
-    Singleton<WindowParameters>::getInstance().init(800, 600, "MoneyHeist");
-
-    if (!Singleton<WindowParameters>::getInstance().mWindow)
-    {
-        std::cout << "Failed to create GLFWwindow" << std::endl;
-        glfwTerminate();
-        return;
-    }
-
-    glfwMakeContextCurrent(Singleton<WindowParameters>::getInstance().mWindow);
 }
 
-inline void gladInit() noexcept
+inline void initGlad() noexcept
 {
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to init GLAD" << std::endl;
-        return;
+        exit(-3);
     }
-}
-
-inline void imguiInit() noexcept
-{
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(Singleton<WindowParameters>::getInstance().mWindow, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
-}
-
-inline void showFps() noexcept
-{
-    constexpr auto guiWidth = ImVec2{ 90.0f, 30.0f };
-
-    ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
-    ImGui::SetWindowPos({ Singleton<WindowParameters>::getInstance().mWidth - guiWidth.x, 0});
-    ImGui::SetWindowSize(guiWidth);
-    ImGui::TextColored({ 0.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.1f", ImGui::GetIO().Framerate);
-    ImGui::End();
-}
-
-inline void imguiNewFrame() noexcept
-{
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-}
-
-inline void render() noexcept
-{
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 inline void releaseMemory() noexcept
 {
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
+    Gui::shutdown();
     glfwTerminate();
 }
 
 int main()
 {
-    windowInit();
-    gladInit();
-    imguiInit();
+    initGlfw();
+    Singleton<WindowParameters>::getInstance().init(1000, 600, "MoneyHeist");
+    Singleton<Data>::getInstance().init(glm::vec4(0.73f, 0.73f, 0.73f, 1.0f));
+    initGlad();
+    Gui::init();
 
-    ImVec4 clearColor = ImVec4(0.73f, 0.73f, 0.73f, 1.0f);
+    std::vector<GLfloat> platformVertices = {
+        -0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,     0.0f,  0.0f,
+        -0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,     0.0f,  1.0f,
+         0.5f, -0.5f, 0.0f,     0.0f, 1.0f, 0.0f,     1.0f,  1.0f,
+         0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,     1.0f,  0.0f,
+    };
+    std::vector<GLuint> platformIndices = {
+        0, 2, 1,
+        0, 3, 2,
+    };
+
+    GLuint VAO{ 0 }, VBO{ 0 }, EBO{ 0 };
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    glGenBuffers(1, &VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, platformVertices.size() * sizeof(GLfloat), platformVertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, platformIndices.size() * sizeof(GLuint), platformIndices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(0 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
+
+    std::string shaderStr;
+    {
+        std::ifstream shaderFile;
+        shaderFile.open("shaders/object.vert");
+        std::stringstream buffer;
+        buffer << shaderFile.rdbuf();
+        shaderStr = buffer.str();
+    }
+    auto vertexShaderStr = shaderStr.c_str();
+
+    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderStr, 0);
+    glCompileShader(vertexShader);
+
+    {
+        std::ifstream shaderFile;
+        shaderFile.open("shaders/object.frag");
+        std::stringstream buffer;
+        buffer << shaderFile.rdbuf();
+        shaderStr = buffer.str();
+    }
+    auto fragmentShaderStr = shaderStr.c_str();
+
+    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderStr, 0);
+    glCompileShader(fragmentShader);
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vertexShader);
+    glAttachShader(program, fragmentShader);
+    glLinkProgram(program);
+
+    glDetachShader(program, vertexShader);
+    glDetachShader(program, fragmentShader);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
     glViewport(0, 0, Singleton<WindowParameters>::getInstance().mWidth, Singleton<WindowParameters>::getInstance().mHeight);
 
     while (!glfwWindowShouldClose(Singleton<WindowParameters>::getInstance().mWindow))
     {
-        imguiNewFrame();
+        Gui::newFrame();
 
+        const auto& clearColor = Singleton<Data>::getInstance().mClearColor;
         glClear(GL_COLOR_BUFFER_BIT);
         glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 
         glViewport(0, 0, Singleton<WindowParameters>::getInstance().mWidth, Singleton<WindowParameters>::getInstance().mHeight);
 
-        showFps();
+        glUseProgram(program);
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, platformIndices.size(), GL_UNSIGNED_INT, 0);
 
-        render();
+        Gui::fpsWindow();
+        Gui::menuWindow();
+
+        Gui::render();
 
         glfwPollEvents();
         glfwSwapBuffers(Singleton<WindowParameters>::getInstance().mWindow);
     }
 
+    glDeleteBuffers(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+
     releaseMemory();
+
 }
