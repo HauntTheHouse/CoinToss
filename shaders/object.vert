@@ -6,9 +6,13 @@ layout(location = 2) in vec2 aTextureCoord;
 layout(location = 0) out vec3 fNormal;
 layout(location = 1) out vec2 fTextureCoord;
 
+uniform mat4 uProjection;
+uniform mat4 uView;
+uniform mat4 uModel;
+
 void main()
 {
-	gl_Position = vec4(aPosition, 1.0f);
+	gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0f);
 	fNormal = aNormal;
 	fTextureCoord = aTextureCoord;
 }

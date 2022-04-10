@@ -1,14 +1,17 @@
 #include "Gui.h"
-#include "Singleton.h"
-#include "WindowParameters.h"
-#include "Data.h"
+
+#include <iostream>
+#include <vector>
+#include <string>
+
+#include "System.h"
 
 namespace Gui
 {
     void init() noexcept
     {
         ImGui::CreateContext();
-        ImGui_ImplGlfw_InitForOpenGL(Singleton<WindowParameters>::getInstance().mWindow, true);
+        ImGui_ImplGlfw_InitForOpenGL(System::getInstance().mWindowParameters.window, true);
         ImGui_ImplOpenGL3_Init("#version 330");
     }
 
@@ -23,8 +26,8 @@ namespace Gui
     void menuWindow() noexcept
     {
         ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::ColorEdit3("Clear color", &Singleton<Data>::getInstance().mClearColor.x);
-        ImGui::SetWindowPos(ImVec2{ Singleton<WindowParameters>::getInstance().mWidth - ImGui::GetWindowWidth(), 0.0f });
+        ImGui::ColorEdit3("Clear color", &System::getInstance().mData.clearColor.x);
+        ImGui::SetWindowPos(ImVec2{ System::getInstance().mWindowParameters.width - ImGui::GetWindowWidth(), 0.0f });
         ImGui::End();
     }
 
