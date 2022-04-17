@@ -5,9 +5,6 @@
 
 struct WindowParameters
 {
-    WindowParameters() = default;
-    ~WindowParameters();
-
     void init(int aWidth, int aHeigth, const std::string& aName);
 
     GLFWwindow* window{ nullptr };

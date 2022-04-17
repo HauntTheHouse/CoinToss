@@ -3,10 +3,8 @@ project(CoinToss VERSION 0.1.0)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_definitions(-DSTB_IMAGE_IMPLEMENTATION)
-
 file(COPY shaders DESTINATION .)
-file(COPY images DESTINATION .)
+file(COPY models DESTINATION .)
 
 file(GLOB SRC_LIST CONFIGURE_DEPENDS
     include/*.h
@@ -27,6 +25,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     BulletCollision
     LinearMath
     imgui
+    assimp
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -37,4 +36,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libs/bullet3/src
     libs/stb
     libs/imgui
+    libs/assimp/include
 )

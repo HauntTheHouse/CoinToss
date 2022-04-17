@@ -1,10 +1,5 @@
 #include "WindowParameters.h"
 
-WindowParameters::~WindowParameters()
-{
-    //glfwDestroyWindow(mWindow);
-}
-
 void WindowParameters::init(int aWidth, int aHeigth, const std::string& aName)
 {
     width = aWidth;

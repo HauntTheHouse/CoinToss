@@ -11,55 +11,22 @@
 #include "System.h"
 #include "Gui.h"
 #include "Utils.h"
+#include "Model.h"
 
-inline void initGlfw() noexcept;
-inline void initGlad() noexcept;
+inline void init() noexcept;
 inline void processInput() noexcept;
 inline void render() noexcept;
 inline void releaseMemory() noexcept;
 
 int main()
 {
-    initGlfw();
-    System::getInstance().mWindowParameters.init(1000, 600, "MoneyHeist");
-
-    glfwSetWindowSizeCallback(System::getInstance().mWindowParameters.window, Glfw::widnowSizeCallback);
-    glfwSetMouseButtonCallback(System::getInstance().mWindowParameters.window, Glfw::mouseButtonCallback);
-    glfwSetScrollCallback(System::getInstance().mWindowParameters.window, Glfw::scrollCallback);
-
-    initGlad();
-    Gui::init();
-
-    std::vector<GLfloat> platformVertices = {
-        -1.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f,     0.0f, 0.0f,
-        -1.0f,  0.0f, -1.0f,     0.0f, 1.0f, 0.0f,     0.0f, 1.0f,
-         1.0f,  0.0f, -1.0f,     0.0f, 1.0f, 0.0f,     1.0f, 1.0f,
-         1.0f,  0.0f,  1.0f,     0.0f, 1.0f, 0.0f,     1.0f, 0.0f,
-    };
-    std::vector<GLuint> platformIndices = {
-        0, 2, 1,
-        0, 3, 2,
-    };
+    init();
 
     auto& data = System::getInstance().mData;
 
-    glGenVertexArrays(1, &data.platformVAO);
-    glBindVertexArray(data.platformVAO);
-
-    glGenBuffers(1, &data.platformVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, data.platformVBO);
-    glBufferData(GL_ARRAY_BUFFER, platformVertices.size() * sizeof(GLfloat), platformVertices.data(), GL_STATIC_DRAW);
-
-    glGenBuffers(1, &data.platformEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, data.platformEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, platformIndices.size() * sizeof(GLuint), platformIndices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(0 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<void*>(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
+    data.model.load("models/table/RoundTable.obj");
+    //model2.load("models/coin/PirateCoin.obj");
+    //model.load("models/backpack/backpack.obj");
 
     const auto vertexShaderId = Utils::compileShader("shaders/object.vert", GL_VERTEX_SHADER);
     const auto fragmentShaderId = Utils::compileShader("shaders/object.frag", GL_FRAGMENT_SHADER);
@@ -75,10 +42,6 @@ int main()
     data.platformModelSpace = glm::mat4(1.0f);
     Utils::setUniformMat4(data.programId, "uModel", data.platformModelSpace);
 
-    const auto textureId = Utils::loadTexture("images/wood_texture3854.jpg");
-    glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(data.programId, "uWoodTexture"), 0);
-
     glViewport(0, 0, System::getInstance().mWindowParameters.width, System::getInstance().mWindowParameters.height);
 
     while (!glfwWindowShouldClose(System::getInstance().mWindowParameters.window))
@@ -86,7 +49,7 @@ int main()
         Gui::newFrame();
         processInput();
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(data.clearColor.x, data.clearColor.y, data.clearColor.z, data.clearColor.w);
 
         glViewport(0, 0, System::getInstance().mWindowParameters.width, System::getInstance().mWindowParameters.height);
@@ -106,7 +69,7 @@ int main()
 
 
 
-inline void initGlfw() noexcept
+inline void init() noexcept
 {
     glfwSetErrorCallback(Glfw::errorCallback);
 
@@ -115,15 +78,22 @@ inline void initGlfw() noexcept
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
-}
 
-inline void initGlad() noexcept
-{
+    System::getInstance().mWindowParameters.init(1000, 600, "MoneyHeist");
+
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to init GLAD" << std::endl;
         exit(-3);
     }
+
+    glfwSetWindowSizeCallback(System::getInstance().mWindowParameters.window, Glfw::widnowSizeCallback);
+    glfwSetMouseButtonCallback(System::getInstance().mWindowParameters.window, Glfw::mouseButtonCallback);
+    glfwSetScrollCallback(System::getInstance().mWindowParameters.window, Glfw::scrollCallback);
+
+    glEnable(GL_DEPTH_TEST);
+
+    Gui::init();
 }
 
 inline void processInput() noexcept
@@ -158,20 +128,17 @@ inline void processInput() noexcept
 
 inline void render() noexcept
 {
-    Gui::render();
+    System::getInstance().mData.model.draw(System::getInstance().mData.programId);
+    //model2.draw(System::getInstance().mData.programId);
 
-    glUseProgram(System::getInstance().mData.programId);
-    glBindVertexArray(System::getInstance().mData.platformVAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    Gui::render();
 }
 
 inline void releaseMemory() noexcept
 {
     Gui::shutdown();
 
-    glDeleteBuffers(1, &System::getInstance().mData.platformEBO);
-    glDeleteBuffers(1, &System::getInstance().mData.platformVBO);
-    glDeleteBuffers(1, &System::getInstance().mData.platformVAO);
+    System::getInstance().mData.model.clear();
 
     glfwDestroyWindow(System::getInstance().mWindowParameters.window);
     glfwTerminate();

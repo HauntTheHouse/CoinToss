@@ -3,11 +3,10 @@
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "Model.h"
+
 struct Data
 {
-    GLuint platformVAO{ 0 };
-    GLuint platformVBO{ 0 };
-    GLuint platformEBO{ 0 };
     GLuint programId{ 0 };
 
     glm::vec4 clearColor;
@@ -15,4 +14,6 @@ struct Data
     glm::mat4 projSpace;
     glm::mat4 viewSpace;
     glm::mat4 platformModelSpace;
+
+    Model model;
 };

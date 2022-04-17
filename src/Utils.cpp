@@ -106,9 +106,9 @@ namespace Utils
 
     GLuint loadTexture(const char* aPath) noexcept
     {
-        int width, height, nrChannels;
+        int width, height, numChannels;
         //stbi_set_flip_vertically_on_load(true);
-        const auto textureData = stbi_load(aPath, &width, &height, &nrChannels, 0);
+        const auto textureData = stbi_load(aPath, &width, &height, &numChannels, 0);
         if (!textureData)
         {
             std::cerr << "Texture upload was failed" << std::endl;
@@ -123,18 +123,15 @@ namespace Utils
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         GLenum format;
-        switch (nrChannels)
-        {
-        case 3:
+        if (numChannels == 1)
+            format = GL_RED;
+        else if (numChannels == 2)
+            format = GL_RG;
+        else if (numChannels == 3)
             format = GL_RGB;
-            break;
-        case 4:
+        else if (numChannels == 4)
             format = GL_RGBA;
-            break;
-        default:
-            format = GL_ZERO;
-            break;
-        }
+
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, textureData);
         glGenerateMipmap(GL_TEXTURE_2D);
 

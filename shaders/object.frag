@@ -5,9 +5,9 @@ layout(location = 1) in vec2 fTextureCoord;
 
 out vec4 FragColor;
 
-uniform sampler2D uWoodTexture;
+uniform sampler2D uTextureDiffuse;
 
 void main()
 {
-	FragColor = texture(uWoodTexture, fTextureCoord);
+	FragColor = texture(uTextureDiffuse, fTextureCoord);
 }
