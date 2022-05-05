@@ -29,7 +29,7 @@ namespace Gui
         ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
         ImGui::SetWindowPos({ 0, 0 });
         const auto& clearColor = System::getData().mClearColor;
-        ImGui::TextColored({ (1.0f - clearColor.r), (1.0f - clearColor.g), (1.0f - clearColor.b), 1.0f }, "FPS: %.f", ImGui::GetIO().Framerate);
+        ImGui::TextColored({ (1.0f - clearColor.r), (1.0f - clearColor.g), (1.0f - clearColor.b), 1.0f }, "FPS: %.f\t", ImGui::GetIO().Framerate);
         ImGui::End();
     }
 
