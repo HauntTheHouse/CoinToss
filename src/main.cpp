@@ -48,7 +48,7 @@ int main()
         processInput();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(data.mClearColor.x, data.mClearColor.y, data.mClearColor.z, data.mClearColor.w);
+        glClearColor(data.mClearColor.r, data.mClearColor.g, data.mClearColor.b, data.mClearColor.a);
 
         glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
@@ -94,18 +94,20 @@ inline void init() noexcept
 
 inline void processInput() noexcept
 {
-    auto& camera = System::getCamera();
+    if (Gui::isMenuActive())
+        return;
+
     if (System::getData().mLeftMousePressed)
     {
         const auto offset = Utils::calculateOffset();
-        camera.roundMove(offset);
-        camera.calcViewSpace(System::getData().mProgramId);
+        System::getCamera().roundMove(offset);
+        System::getCamera().calcViewSpace(System::getData().mProgramId);
     }
-    if (System::getData().mRightMousePressed)
+    else if (System::getData().mRightMousePressed)
     {
         const auto offset = Utils::calculateOffset();
-        camera.flatMove(offset);
-        camera.calcViewSpace(System::getData().mProgramId);
+        System::getCamera().flatMove(offset);
+        System::getCamera().calcViewSpace(System::getData().mProgramId);
     }
 }
 
