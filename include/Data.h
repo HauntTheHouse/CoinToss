@@ -7,13 +7,14 @@
 
 struct Data
 {
-    GLuint programId{ 0 };
+    GLuint mProgramId{ 0 };
 
-    glm::vec4 clearColor;
+    bool mLeftMousePressed{ false };
+    bool mRightMousePressed{ false };
 
-    glm::mat4 projSpace;
-    glm::mat4 viewSpace;
-    glm::mat4 platformModelSpace;
+    glm::vec4 mClearColor;
 
-    Model model;
+    glm::mat4 mPlatformModelSpace;
+
+    Model mModel;
 };

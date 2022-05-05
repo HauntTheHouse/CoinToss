@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 file(COPY shaders DESTINATION .)
 file(COPY models DESTINATION .)
+file(COPY preferences.json DESTINATION .)
 
 file(GLOB SRC_LIST CONFIGURE_DEPENDS
     include/*.h
@@ -26,6 +27,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     LinearMath
     imgui
     assimp
+    jsoncpp_static
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE
@@ -37,4 +39,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libs/stb
     libs/imgui
     libs/assimp/include
+    libs/jsoncpp/include
 )

@@ -11,7 +11,7 @@ namespace Gui
     void init() noexcept
     {
         ImGui::CreateContext();
-        ImGui_ImplGlfw_InitForOpenGL(System::getInstance().mWindowParameters.window, true);
+        ImGui_ImplGlfw_InitForOpenGL(System::getWindowParameters().mWindow, true);
         ImGui_ImplOpenGL3_Init("#version 330");
     }
 
@@ -19,15 +19,15 @@ namespace Gui
     {
         ImGui::Begin("FPS", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoBackground);
         ImGui::SetWindowPos({ 0, 0 });
-        ImGui::TextColored({ 0.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::TextColored({ 0.0f, 0.0f, 0.0f, 1.0f }, "FPS: %.f", ImGui::GetIO().Framerate);
         ImGui::End();
     }
 
     void menuWindow() noexcept
     {
         ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::ColorEdit3("Clear color", &System::getInstance().mData.clearColor.x);
-        ImGui::SetWindowPos(ImVec2{ System::getInstance().mWindowParameters.width - ImGui::GetWindowWidth(), 0.0f });
+        ImGui::ColorEdit3("Clear color", &System::getData().mClearColor.x);
+        ImGui::SetWindowPos(ImVec2{ System::getWindowParameters().mWidth - ImGui::GetWindowWidth(), 0.0f });
         ImGui::End();
     }
 

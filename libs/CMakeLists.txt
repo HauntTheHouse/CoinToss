@@ -5,6 +5,7 @@ add_subdirectory(glfw)
 add_subdirectory(glm)
 add_subdirectory(bullet3)
 add_subdirectory(assimp)
+add_subdirectory(jsoncpp)
 
 add_library(glad
 	glad/include/glad/glad.h

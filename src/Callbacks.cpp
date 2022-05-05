@@ -13,47 +13,44 @@ namespace Glfw
 
     void widnowSizeCallback(GLFWwindow* window, int width, int height)
     {
-        System::getInstance().mWindowParameters.width = width;
-        System::getInstance().mWindowParameters.height = height;
-
-        Utils::calculateProjSpace();
+        System::getWindowParameters().mWidth = width;
+        System::getWindowParameters().mHeight = height;
+        System::getProjective().calcProjSpace(System::getData().mProgramId);
     }
 
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
-        auto& camera = System::getInstance().mCamera;
+        auto& camera = System::getCamera();
         if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
             if (action == GLFW_PRESS)
             {
-                camera.leftMousePressed = true;
-                glfwGetCursorPos(System::getInstance().mWindowParameters.window, &camera.oldPos.x, &camera.oldPos.y);
+                System::getData().mLeftMousePressed = true;
+                glfwGetCursorPos(System::getWindowParameters().mWindow, &camera.mOldPos.x, &camera.mOldPos.y);
             }
             else if (action == GLFW_RELEASE)
             {
-                camera.leftMousePressed = false;
+                System::getData().mLeftMousePressed = false;
             }
         }
         if (button == GLFW_MOUSE_BUTTON_RIGHT)
         {
             if (action == GLFW_PRESS)
             {
-                camera.rightMousePressed = true;
-                glfwGetCursorPos(System::getInstance().mWindowParameters.window, &camera.oldPos.x, &camera.oldPos.y);
+                System::getData().mRightMousePressed = true;
+                glfwGetCursorPos(System::getWindowParameters().mWindow, &camera.mOldPos.x, &camera.mOldPos.y);
             }
             else if (action == GLFW_RELEASE)
             {
-                camera.rightMousePressed = false;
+                System::getData().mRightMousePressed = false;
             }
         }
     }
 
     void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     {
-        auto& camera = System::getInstance().mCamera;
-        camera.radius -= yoffset * camera.zoomSensitivity;
-        if (camera.radius < 0.15f)
-            camera.radius = 0.15f;
-        Utils::calculateViewSpace();
+        auto& camera = System::getCamera();
+        camera.zoomMove(yoffset);
+        camera.calcViewSpace(System::getData().mProgramId);
     }
 }

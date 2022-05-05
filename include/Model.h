@@ -51,7 +51,6 @@ public:
 	void clear();
 
 private:
-
 	void processNode(const aiNode* aNode, const aiScene* aScene);
 
 	struct TextureType

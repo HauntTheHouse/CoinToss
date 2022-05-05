@@ -5,6 +5,8 @@
 #include <sstream>
 #include <string>
 
+#include <json/json.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
@@ -13,6 +15,47 @@
 
 namespace Utils
 {
+    void initGlobals() noexcept
+    {
+        Json::Value pref;
+        std::ifstream prefStream("preferences.json");
+        prefStream >> pref;
+
+        const auto name   = pref["window-parameters"].get("name", "").asString();
+        const auto width  = pref["window-parameters"].get("width", 800).asInt();
+        const auto height = pref["window-parameters"].get("height", 600).asInt();
+        System::getWindowParameters().init(width, height, name);
+
+        auto& camera = System::getCamera();
+        camera.mRadius          = pref["camera"].get("radius", 3.0f).asFloat();
+        camera.mPitch           = pref["camera"].get("pitch", 45.0f).asFloat();
+        camera.mYaw             = pref["camera"].get("yaw", 0.0f).asFloat();
+        camera.mMoveSensitivity = pref["camera"].get("move-sensitivity", 0.005f).asFloat();
+        camera.mZoomSensitivity = pref["camera"].get("zoom-sensitivity", 0.1f).asFloat();
+
+        const auto& center = pref["camera"]["center"];
+        for (int i = 0; i < center.size(); ++i)
+        {
+            System::getCamera().mCenter[i] = center[i].asFloat();
+        }
+        const auto& worldUp = pref["camera"]["world-up"];
+        for (int i = 0; i < worldUp.size(); ++i)
+        {
+            System::getCamera().mWorldUp[i] = worldUp[i].asFloat();
+        }
+
+        auto& proj = System::getProjective();
+        proj.mFovy = pref["projective"].get("fovy", 45).asFloat();
+        proj.mNear = pref["projective"].get("near", 0.1).asFloat();
+        proj.mFar  = pref["projective"].get("far", 100).asFloat();
+
+        const auto& color = pref["clear-color"];
+        for (int i = 0; i < color.size(); ++i)
+        {
+            System::getData().mClearColor[i] = color[i].asFloat();
+        }
+    }
+
     GLuint compileShader(const char* aPath, GLenum aShaderType) noexcept
     {
         std::ifstream shaderFile(aPath);
@@ -71,35 +114,16 @@ namespace Utils
         return program;
     }
 
-    void calculateViewSpace() noexcept
-    {
-        auto& camera = System::getInstance().mCamera;
-        const auto camX = sinf(glm::radians(camera.pitch)) * sinf(glm::radians(camera.yaw)) * camera.radius + camera.center.x;
-        const auto camY = cosf(glm::radians(camera.pitch)) * camera.radius + camera.center.y;
-        const auto camZ = sinf(glm::radians(camera.pitch)) * cosf(glm::radians(camera.yaw)) * camera.radius + camera.center.z;
-
-        auto& data = System::getInstance().mData;
-        data.viewSpace = glm::lookAt(glm::vec3(camX, camY, camZ), camera.center, camera.worldUp);
-        setUniformMat4(data.programId, "uView", data.viewSpace);
-    }
-
-    void calculateProjSpace() noexcept
-    {
-        const auto aspect = System::getInstance().mWindowParameters.width / static_cast<float>(System::getInstance().mWindowParameters.height);
-        System::getInstance().mData.projSpace = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
-        setUniformMat4(System::getInstance().mData.programId, "uProjection", System::getInstance().mData.projSpace);
-    }
-
     glm::vec2 calculateOffset() noexcept
     {
         double xPos, yPos;
-        glfwGetCursorPos(System::getInstance().mWindowParameters.window, &xPos, &yPos);
+        glfwGetCursorPos(System::getWindowParameters().mWindow, &xPos, &yPos);
 
-        double xOffset = xPos - System::getInstance().mCamera.oldPos.x;
-        double yOffset = yPos - System::getInstance().mCamera.oldPos.y;
+        double xOffset = xPos - System::getCamera().mOldPos.x;
+        double yOffset = yPos - System::getCamera().mOldPos.y;
 
-        System::getInstance().mCamera.oldPos.x = xPos;
-        System::getInstance().mCamera.oldPos.y = yPos;
+        System::getCamera().mOldPos.x = xPos;
+        System::getCamera().mOldPos.y = yPos;
 
         return glm::vec2(xOffset, yOffset);
     }

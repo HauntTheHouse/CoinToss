@@ -7,12 +7,12 @@
 
 namespace Utils
 {
+	void initGlobals() noexcept;
+
 	GLuint compileShader(const char* aPath, GLenum aShaderType) noexcept;
 	GLuint createProgram(const std::vector<GLuint>& aShaderIds) noexcept;
 	GLuint loadTexture(const char* aPath) noexcept;
 
-	void calculateViewSpace() noexcept;
-	void calculateProjSpace() noexcept;
 	glm::vec2 calculateOffset() noexcept;
 
 	void setUniformMat4(GLuint aProgramId, const GLchar* aName, const glm::mat4& aValue) noexcept;

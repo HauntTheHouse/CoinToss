@@ -7,8 +7,8 @@ struct WindowParameters
 {
     void init(int aWidth, int aHeigth, const std::string& aName);
 
-    GLFWwindow* window{ nullptr };
-    int width{ 0 };
-    int height{ 0 };
-    std::string name;
+    GLFWwindow* mWindow{ nullptr };
+    int mWidth{ 0 };
+    int mHeight{ 0 };
+    std::string mName;
 };

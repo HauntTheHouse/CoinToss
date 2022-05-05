@@ -22,37 +22,35 @@ int main()
 {
     init();
 
-    auto& data = System::getInstance().mData;
+    auto& data = System::getData();
 
-    data.model.load("models/table/RoundTable.obj");
+    data.mModel.load("models/table/RoundTable.obj");
     //model2.load("models/coin/PirateCoin.obj");
     //model.load("models/backpack/backpack.obj");
 
     const auto vertexShaderId = Utils::compileShader("shaders/object.vert", GL_VERTEX_SHADER);
     const auto fragmentShaderId = Utils::compileShader("shaders/object.frag", GL_FRAGMENT_SHADER);
-    data.programId = Utils::createProgram({ vertexShaderId, fragmentShaderId });
+    data.mProgramId = Utils::createProgram({ vertexShaderId, fragmentShaderId });
 
-    data.clearColor = glm::vec4(0.8f, 0.8f, 0.9f, 1.0f);
+    glUseProgram(data.mProgramId);
 
-    glUseProgram(data.programId);
+    System::getProjective().calcProjSpace(data.mProgramId);
+    System::getCamera().calcViewSpace(data.mProgramId);
 
-    Utils::calculateProjSpace();
-    Utils::calculateViewSpace();
+    data.mPlatformModelSpace = glm::mat4(1.0f);
+    Utils::setUniformMat4(data.mProgramId, "uModel", data.mPlatformModelSpace);
 
-    data.platformModelSpace = glm::mat4(1.0f);
-    Utils::setUniformMat4(data.programId, "uModel", data.platformModelSpace);
+    glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
-    glViewport(0, 0, System::getInstance().mWindowParameters.width, System::getInstance().mWindowParameters.height);
-
-    while (!glfwWindowShouldClose(System::getInstance().mWindowParameters.window))
+    while (!glfwWindowShouldClose(System::getWindowParameters().mWindow))
     {
         Gui::newFrame();
         processInput();
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(data.clearColor.x, data.clearColor.y, data.clearColor.z, data.clearColor.w);
+        glClearColor(data.mClearColor.x, data.mClearColor.y, data.mClearColor.z, data.mClearColor.w);
 
-        glViewport(0, 0, System::getInstance().mWindowParameters.width, System::getInstance().mWindowParameters.height);
+        glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
         Gui::fpsWindow();
         Gui::menuWindow();
@@ -60,14 +58,12 @@ int main()
         render();
 
         glfwPollEvents();
-        glfwSwapBuffers(System::getInstance().mWindowParameters.window);
+        glfwSwapBuffers(System::getWindowParameters().mWindow);
     }
 
     releaseMemory();
     return 0;
 }
-
-
 
 inline void init() noexcept
 {
@@ -79,7 +75,7 @@ inline void init() noexcept
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 
-    System::getInstance().mWindowParameters.init(1000, 600, "MoneyHeist");
+    Utils::initGlobals();
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -87,9 +83,9 @@ inline void init() noexcept
         exit(-3);
     }
 
-    glfwSetWindowSizeCallback(System::getInstance().mWindowParameters.window, Glfw::widnowSizeCallback);
-    glfwSetMouseButtonCallback(System::getInstance().mWindowParameters.window, Glfw::mouseButtonCallback);
-    glfwSetScrollCallback(System::getInstance().mWindowParameters.window, Glfw::scrollCallback);
+    glfwSetWindowSizeCallback(System::getWindowParameters().mWindow, Glfw::widnowSizeCallback);
+    glfwSetMouseButtonCallback(System::getWindowParameters().mWindow, Glfw::mouseButtonCallback);
+    glfwSetScrollCallback(System::getWindowParameters().mWindow, Glfw::scrollCallback);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -98,38 +94,25 @@ inline void init() noexcept
 
 inline void processInput() noexcept
 {
-    auto& camera = System::getInstance().mCamera;
-    if (camera.leftMousePressed)
+    auto& camera = System::getCamera();
+    if (System::getData().mLeftMousePressed)
     {
         const auto offset = Utils::calculateOffset();
-
-        camera.yaw -= offset.x;
-        camera.pitch -= offset.y;
-
-        if (camera.pitch <= 0.0f)
-            camera.pitch = 1.0f;
-        else if (camera.pitch >= 180.0f)
-            camera.pitch = 179.0f;
-
-        Utils::calculateViewSpace();
+        camera.roundMove(offset);
+        camera.calcViewSpace(System::getData().mProgramId);
     }
-    if (camera.rightMousePressed)
+    if (System::getData().mRightMousePressed)
     {
         const auto offset = Utils::calculateOffset();
-
-        auto centerViewSpace = System::getInstance().mData.viewSpace * glm::vec4(camera.center, 1.0f);
-        centerViewSpace.x -= offset.x * camera.moveSensitivity;
-        centerViewSpace.y += offset.y * camera.moveSensitivity;
-        camera.center = glm::inverse(System::getInstance().mData.viewSpace) * centerViewSpace;
-
-        Utils::calculateViewSpace();
+        camera.flatMove(offset);
+        camera.calcViewSpace(System::getData().mProgramId);
     }
 }
 
 inline void render() noexcept
 {
-    System::getInstance().mData.model.draw(System::getInstance().mData.programId);
-    //model2.draw(System::getInstance().mData.programId);
+    System::getData().mModel.draw(System::getData().mProgramId);
+    //model2.draw(System::getData().mProgramId);
 
     Gui::render();
 }
@@ -138,8 +121,8 @@ inline void releaseMemory() noexcept
 {
     Gui::shutdown();
 
-    System::getInstance().mData.model.clear();
+    System::getData().mModel.clear();
 
-    glfwDestroyWindow(System::getInstance().mWindowParameters.window);
+    glfwDestroyWindow(System::getWindowParameters().mWindow);
     glfwTerminate();
 }

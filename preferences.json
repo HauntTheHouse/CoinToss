@@ -1,0 +1,44 @@
+{
+	"window-parameters":
+	{
+		"name": "MoneyHeist",
+		"width": 800,
+		"height": 600,
+	},
+	"camera":
+	{
+		"radius": 4.0,
+		"pitch": 70.0,
+		"yaw": 0.0,
+		
+		"center": [0.0, 0.0, 0.0],
+		"world-up": [0.0, 1.0, 0.0],
+		
+		"move-sensitivity": 0.005,
+		"zoom-sensitivity": 0.1
+	},
+	"projective":
+	{
+		"fovy": 45.0,
+		"near": 0.1,
+		"far": 100.0
+	},
+	"models":
+	[
+		{
+			"name": "round-table",
+			"path": "models/table/RoundTable.obj",
+			"position": [0.0, 0.0, 0.0],
+			"rotation": [[0.0, 0.0, 0.0], 0.0],
+			"scale": [1.0, 1.0, 1.0]
+		},
+		{
+			"name": "coin",
+			"path": "models/coin/PirateCoin.obj",
+			"position": [0.0, 0.0, 0.0],
+			"rotation": [[0.0, 0.0, 0.0], 0.0],
+			"scale": [1.0, 1.0, 1.0]
+		}
+	],
+	"clear-color": [0.8, 0.8, 0.9, 1.0]
+}

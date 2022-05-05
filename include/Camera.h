@@ -1,22 +1,40 @@
 #pragma once;
 
+#include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glad/glad.h>
+
+struct Projective
+{
+    glm::mat4 projSpace;
+
+    float mFovy{ 45.0f };
+    float mNear{ 0.1f };
+    float mFar{ 100.0f };
+
+    void calcProjSpace(GLuint aProgramId) noexcept;
+};
 
 struct Camera
 {
-    glm::dvec2 oldPos;
+    glm::mat4 mViewSpace;
 
-    float radius{ 3.0f };
-    float pitch{ 45.0f };
-    float yaw{ 0.0f };
+    glm::dvec2 mOldPos;
 
-    glm::vec3 center{ 0.0f };
-    glm::vec3 worldUp{ 0.0f, 1.0f, 0.0f };
+    float mRadius{ 3.0f };
+    float mPitch{ 45.0f };
+    float mYaw{ 0.0f };
 
-    float moveSensitivity{ 0.005f };
-    float zoomSensitivity{ 0.1f };
+    glm::vec3 mCenter{ 0.0f };
+    glm::vec3 mWorldUp{ 0.0f, 1.0f, 0.0f };
 
-    bool leftMousePressed{ false };
-    bool rightMousePressed{ false };
+    float mMoveSensitivity{ 0.005f };
+    float mZoomSensitivity{ 0.1f };
+
+    void roundMove(const glm::vec2& aOffset) noexcept;
+    void flatMove(const glm::vec2& aOffset) noexcept;
+    void zoomMove(float aOffset) noexcept;
+
+    void calcViewSpace(GLuint aProgramId) noexcept;
 };
