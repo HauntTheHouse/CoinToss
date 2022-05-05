@@ -7,35 +7,34 @@
 	},
 	"camera":
 	{
-		"radius": 4.0,
-		"pitch": 70.0,
+		"radius": 1.5,
+		"pitch": 50.0,
 		"yaw": 0.0,
 		
-		"center": [0.0, 0.0, 0.0],
+		"center": [0.0, 0.5, 0.0],
 		"world-up": [0.0, 1.0, 0.0],
 		
-		"move-sensitivity": 0.005,
-		"zoom-sensitivity": 0.1
+		"round-move-sensitivity": 0.1,
+		"flat-move-sensitivity": 0.001,
+		"zoom-sensitivity": 0.05
 	},
 	"projective":
 	{
 		"fovy": 45.0,
-		"near": 0.1,
-		"far": 100.0
+		"near": 0.01,
+		"far": 10.0
 	},
 	"models":
 	[
 		{
-			"name": "round-table",
 			"path": "models/table/RoundTable.obj",
 			"position": [0.0, 0.0, 0.0],
 			"rotation": [[0.0, 0.0, 0.0], 0.0],
 			"scale": [1.0, 1.0, 1.0]
 		},
 		{
-			"name": "coin",
 			"path": "models/coin/PirateCoin.obj",
-			"position": [0.0, 0.0, 0.0],
+			"position": [0.0, 0.96, 0.0],
 			"rotation": [[0.0, 0.0, 0.0], 0.0],
 			"scale": [1.0, 1.0, 1.0]
 		}

@@ -18,8 +18,10 @@ namespace Utils
     void initGlobals() noexcept
     {
         Json::Value pref;
-        std::ifstream prefStream("preferences.json");
-        prefStream >> pref;
+        {
+            std::ifstream prefStream("preferences.json");
+            prefStream >> pref;
+        }
 
         const auto name   = pref["window-parameters"].get("name", "").asString();
         const auto width  = pref["window-parameters"].get("width", 800).asInt();
@@ -30,7 +32,8 @@ namespace Utils
         camera.mRadius          = pref["camera"].get("radius", 3.0f).asFloat();
         camera.mPitch           = pref["camera"].get("pitch", 45.0f).asFloat();
         camera.mYaw             = pref["camera"].get("yaw", 0.0f).asFloat();
-        camera.mMoveSensitivity = pref["camera"].get("move-sensitivity", 0.005f).asFloat();
+        camera.mRoundMoveSensitivity = pref["camera"].get("round-move-sensitivity", 0.5f).asFloat();
+        camera.mFlatMoveSensitivity = pref["camera"].get("flat-move-sensitivity", 0.005f).asFloat();
         camera.mZoomSensitivity = pref["camera"].get("zoom-sensitivity", 0.1f).asFloat();
 
         const auto& center = pref["camera"]["center"];
@@ -53,6 +56,24 @@ namespace Utils
         for (int i = 0; i < color.size(); ++i)
         {
             System::getData().mClearColor[i] = color[i].asFloat();
+        }
+
+        const auto& models = pref["models"];
+        System::getData().mModels.resize(models.size());
+        for (int i = 0; i < models.size(); ++i)
+        {
+            System::getData().mModels[i].load(models[i].get("path", "").asString());
+
+            glm::vec3 position;
+            const auto& posJson = models[i]["position"];
+            for (int j = 0; j < posJson.size(); ++j)
+            {
+                position[j] = posJson[j].asFloat();
+            }
+
+            glm::mat4 transform(1.0f);
+            transform = glm::translate(transform, position);
+            System::getData().mModels[i].setTransform(transform);
         }
     }
 

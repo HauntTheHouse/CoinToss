@@ -14,8 +14,8 @@ void Projective::calcProjSpace(GLuint aProgramId) noexcept
 
 void Camera::roundMove(const glm::vec2& aOffset) noexcept
 {
-    mYaw -= aOffset.x;
-    mPitch -= aOffset.y;
+    mYaw -= aOffset.x * mRoundMoveSensitivity;
+    mPitch -= aOffset.y * mRoundMoveSensitivity;
 
     if (mPitch <= 0.0f)
         mPitch = 1.0f;
@@ -26,16 +26,17 @@ void Camera::roundMove(const glm::vec2& aOffset) noexcept
 void Camera::flatMove(const glm::vec2& aOffset) noexcept
 {
     auto centerViewSpace = mViewSpace * glm::vec4(mCenter, 1.0f);
-    centerViewSpace.x -= aOffset.x * mMoveSensitivity;
-    centerViewSpace.y += aOffset.y * mMoveSensitivity;
+    centerViewSpace.x -= aOffset.x * mFlatMoveSensitivity;
+    centerViewSpace.y += aOffset.y * mFlatMoveSensitivity;
     mCenter = glm::inverse(mViewSpace) * centerViewSpace;
 }
 
 void Camera::zoomMove(float aOffset) noexcept
 {
     mRadius -= aOffset * mZoomSensitivity;
-    if (mRadius < 0.15f)
-        mRadius = 0.15f;
+    const float halfNear = System::getProjective().mNear / 2.0f;
+    if (mRadius < halfNear)
+        mRadius = halfNear;
 }
 
 void Camera::calcViewSpace(GLuint aProgramId) noexcept

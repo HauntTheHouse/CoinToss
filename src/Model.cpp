@@ -5,6 +5,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "Utils.h"
 
 Model::Model(std::string aPath)
@@ -27,11 +29,13 @@ void Model::load(std::string aPath)
     processNode(scene->mRootNode, scene);
 }
 
-void Model::draw(GLuint aProgramId) const
+void Model::render(GLuint aProgramId) const
 {
+    Utils::setUniformMat4(aProgramId, "uModel", mTransform);
+
     for (const auto& mesh : mMeshes)
     {
-        mesh.draw(aProgramId);
+        mesh.render(aProgramId);
     }
 }
 
@@ -41,6 +45,11 @@ void Model::clear()
     {
         mesh.clear();
     }
+}
+
+void Model::setTransform(const glm::mat4& aTransform)
+{
+    mTransform = aTransform;
 }
 
 void Model::processNode(const aiNode* aNode, const aiScene* aScene)
@@ -148,7 +157,7 @@ Mesh::Mesh(std::vector<Vertex> aVertices, std::vector<unsigned int> aIndices, st
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, mTexCoords));
 }
 
-void Mesh::draw(GLuint aProgramId) const
+void Mesh::render(GLuint aProgramId) const
 {
     for (size_t i = 0; i < mTextures.size(); ++i)
     {

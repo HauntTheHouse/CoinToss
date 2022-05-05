@@ -29,7 +29,8 @@ struct Camera
     glm::vec3 mCenter{ 0.0f };
     glm::vec3 mWorldUp{ 0.0f, 1.0f, 0.0f };
 
-    float mMoveSensitivity{ 0.005f };
+    float mRoundMoveSensitivity{ 0.5 };
+    float mFlatMoveSensitivity{ 0.005f };
     float mZoomSensitivity{ 0.1f };
 
     void roundMove(const glm::vec2& aOffset) noexcept;

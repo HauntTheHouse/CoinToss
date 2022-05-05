@@ -7,6 +7,7 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 struct Vertex
 {
@@ -25,7 +26,7 @@ struct Mesh
 {
 	Mesh(std::vector<Vertex> aVertices, std::vector<unsigned int> aIndices, std::vector<Texture> aTextures);
 	~Mesh() = default;
-	void draw(GLuint aProgramId) const;
+	void render(GLuint aProgramId) const;
 	void clear();
 
 private:
@@ -47,8 +48,10 @@ public:
     Model(std::string aPath);
 
 	void load(std::string aPath);
-    void draw(GLuint aProgramId) const;
+    void render(GLuint aProgramId) const;
 	void clear();
+
+	void setTransform(const glm::mat4& aTransform);
 
 private:
 	void processNode(const aiNode* aNode, const aiScene* aScene);
@@ -62,4 +65,6 @@ private:
 
 	std::vector<Mesh> mMeshes;
 	std::string mDirectory;
+
+	glm::mat4 mTransform;
 };

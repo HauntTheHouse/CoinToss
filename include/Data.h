@@ -1,4 +1,7 @@
 #pragma once
+
+#include <vector>
+
 #include <glad/glad.h>
 #include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
@@ -12,9 +15,7 @@ struct Data
     bool mLeftMousePressed{ false };
     bool mRightMousePressed{ false };
 
+    std::vector<Model> mModels;
+
     glm::vec4 mClearColor;
-
-    glm::mat4 mPlatformModelSpace;
-
-    Model mModel;
 };
