@@ -78,17 +78,18 @@ inline void processInput() noexcept
     if (Gui::isMenuActive())
         return;
 
+    auto& camera = System::getCamera();
     if (System::getData().mLeftMousePressed)
     {
-        const auto offset = Utils::calculateOffset();
-        System::getCamera().roundMove(offset);
-        System::getCamera().calcViewSpace(System::getData().mProgramId);
+        const auto offset = camera.calcOffset();
+        camera.roundMove(offset);
+        camera.calcViewSpace(System::getData().mProgramId);
     }
     else if (System::getData().mRightMousePressed)
     {
-        const auto offset = Utils::calculateOffset();
-        System::getCamera().flatMove(offset);
-        System::getCamera().calcViewSpace(System::getData().mProgramId);
+        const auto offset = camera.calcOffset();
+        camera.flatMove(offset);
+        camera.calcViewSpace(System::getData().mProgramId);
     }
 }
 

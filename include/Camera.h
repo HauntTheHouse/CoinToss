@@ -37,5 +37,6 @@ struct Camera
     void flatMove(const glm::vec2& aOffset) noexcept;
     void zoomMove(float aOffset) noexcept;
 
+    glm::vec2 calcOffset() noexcept;
     void calcViewSpace(GLuint aProgramId) noexcept;
 };

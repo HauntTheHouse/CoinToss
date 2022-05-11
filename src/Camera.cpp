@@ -39,6 +39,20 @@ void Camera::zoomMove(float aOffset) noexcept
         mRadius = halfNear;
 }
 
+glm::vec2 Camera::calcOffset() noexcept
+{
+    double xPos, yPos;
+    glfwGetCursorPos(System::getWindowParameters().mWindow, &xPos, &yPos);
+
+    double xOffset = xPos - mOldPos.x;
+    double yOffset = yPos - mOldPos.y;
+
+    mOldPos.x = xPos;
+    mOldPos.y = yPos;
+
+    return glm::vec2(xOffset, yOffset);
+}
+
 void Camera::calcViewSpace(GLuint aProgramId) noexcept
 {
     const auto camX = sinf(glm::radians(mPitch)) * sinf(glm::radians(mYaw)) * mRadius + mCenter.x;
