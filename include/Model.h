@@ -37,24 +37,19 @@ private:
 	GLuint mVAO, mVBO, mEBO;
 };
 
+using ModelMeshes = std::vector<Mesh>;
+
 enum aiTextureType;
 struct aiScene;
 struct aiNode;
 
-class Model
+class ModelLoader
 {
 public:
-    Model() = default;
-    Model(std::string aPath);
-
-	void load(std::string aPath);
-    void render(GLuint aProgramId) const;
-	void clear();
-
-	void setTransform(const glm::mat4& aTransform);
+	ModelMeshes load(const std::string& aPath);
 
 private:
-	void processNode(const aiNode* aNode, const aiScene* aScene);
+	void processNode(const aiNode* aNode, ModelMeshes& aModelMeshes);
 
 	struct TextureType
 	{
@@ -63,8 +58,24 @@ private:
 	};
 	std::vector<TextureType> mActiveTypes;
 
-	std::vector<Mesh> mMeshes;
+	const aiScene* mScene;
+
 	std::string mDirectory;
+};
+
+class Model
+{
+public:
+    Model() = default;
+    Model(size_t aModelMeshesId);
+
+    void render(GLuint aProgramId) const;
+	void clear();
+
+	void setTransform(const glm::mat4& aTransform);
+
+private:
+	size_t mModelMeshesId;
 
 	glm::mat4 mTransform;
 };

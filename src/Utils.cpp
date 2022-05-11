@@ -62,18 +62,51 @@ namespace Utils
         System::getData().mModels.resize(models.size());
         for (int i = 0; i < models.size(); ++i)
         {
-            System::getData().mModels[i].load(models[i].get("path", "").asString());
+            const auto path = models[i].get("path", "").asString();
+            const auto hash = getHash(path);
 
-            glm::vec3 position;
-            const auto& posJson = models[i]["position"];
-            for (int j = 0; j < posJson.size(); ++j)
             {
-                position[j] = posJson[j].asFloat();
+                ModelLoader modelLoader;
+                ModelMeshes modelMeshes = modelLoader.load(path);
+                auto& modelMeshesContainer = System::getData().mModelMeshesContainer;
+                if (modelMeshesContainer.find(hash) == modelMeshesContainer.end())
+                    modelMeshesContainer.insert({ hash, std::move(modelMeshes) });
             }
 
-            glm::mat4 transform(1.0f);
-            transform = glm::translate(transform, position);
-            System::getData().mModels[i].setTransform(transform);
+            const auto& modelsProperties = models[i]["models-properties"];
+            for (int j = 0; j < modelsProperties.size(); ++j)
+            {
+                System::getData().mModels.emplace_back(Model(hash));
+
+                glm::vec3 position;
+                const auto& posJson = modelsProperties[j]["position"];
+                for (int k = 0; k < posJson.size(); ++k)
+                {
+                    position[k] = posJson[k].asFloat();
+                }
+
+                glm::vec3 rotateAxis;
+                float angle;
+                const auto& rotJson = modelsProperties[j]["rotation"];
+                for (int k = 0; k < rotJson[0].size(); ++k)
+                {
+                    rotateAxis[k] = rotJson[0][k].asFloat();
+                }
+                angle = glm::radians(rotJson[1].asFloat());
+
+                glm::vec3 scale;
+                const auto& scaleJson = modelsProperties[j]["scale"];
+                for (int k = 0; k < scaleJson.size(); ++k)
+                {
+                    scale[k] = scaleJson[k].asFloat();
+                }
+
+                glm::mat4 transform(1.0f);
+                transform = glm::translate(transform, position);
+                transform = glm::rotate(transform, angle, rotateAxis);
+                transform = glm::scale(transform, scale);
+                System::getData().mModels.back().setTransform(transform);
+            }
         }
     }
 
@@ -135,20 +168,6 @@ namespace Utils
         return program;
     }
 
-    glm::vec2 calculateOffset() noexcept
-    {
-        double xPos, yPos;
-        glfwGetCursorPos(System::getWindowParameters().mWindow, &xPos, &yPos);
-
-        double xOffset = xPos - System::getCamera().mOldPos.x;
-        double yOffset = yPos - System::getCamera().mOldPos.y;
-
-        System::getCamera().mOldPos.x = xPos;
-        System::getCamera().mOldPos.y = yPos;
-
-        return glm::vec2(xOffset, yOffset);
-    }
-
     GLuint loadTexture(const char* aPath) noexcept
     {
         int width, height, numChannels;
@@ -183,6 +202,11 @@ namespace Utils
         stbi_image_free(textureData);
 
         return textureId;
+    }
+
+    size_t getHash(const std::string& aString)
+    {
+        return std::hash<std::string>()(aString);
     }
 
     void setUniformMat4(GLuint aProgramId, const GLchar* aName, const glm::mat4& aValue) noexcept

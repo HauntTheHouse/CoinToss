@@ -8,32 +8,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "Utils.h"
+#include "System.h"
 
-Model::Model(std::string aPath)
+Model::Model(size_t aModelMeshesId)
+    : mModelMeshesId(aModelMeshesId)
 {
-    load(std::move(aPath));
-}
-
-void Model::load(std::string aPath)
-{
-    mDirectory = (aPath.substr(0, aPath.find_last_of('/') + 1));
-
-    mActiveTypes = {
-        { aiTextureType_DIFFUSE,  "uTextureDiffuse" },
-        { aiTextureType_SPECULAR, "uTextureSpecular" },
-        //{ aiTextureType_HEIGHT, "textureNormal" }
-    };
-
-    Assimp::Importer importer;
-    const auto scene = importer.ReadFile(aPath.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
-    processNode(scene->mRootNode, scene);
 }
 
 void Model::render(GLuint aProgramId) const
 {
     Utils::setUniformMat4(aProgramId, "uModel", mTransform);
 
-    for (const auto& mesh : mMeshes)
+    for (const auto& mesh : System::getData().mModelMeshesContainer[mModelMeshesId])
     {
         mesh.render(aProgramId);
     }
@@ -41,7 +27,7 @@ void Model::render(GLuint aProgramId) const
 
 void Model::clear()
 {
-    for (auto& mesh : mMeshes)
+    for (auto& mesh : System::getData().mModelMeshesContainer[mModelMeshesId])
     {
         mesh.clear();
     }
@@ -52,7 +38,26 @@ void Model::setTransform(const glm::mat4& aTransform)
     mTransform = aTransform;
 }
 
-void Model::processNode(const aiNode* aNode, const aiScene* aScene)
+ModelMeshes ModelLoader::load(const std::string& aPath)
+{
+    mDirectory = (aPath.substr(0, aPath.find_last_of('/') + 1));
+
+    mActiveTypes = {
+        { aiTextureType_DIFFUSE,  "uTextureDiffuse" },
+        { aiTextureType_SPECULAR, "uTextureSpecular" },
+        //{ aiTextureType_HEIGHT, "textureNormal" }
+    };
+
+    Assimp::Importer importer;
+    mScene = importer.ReadFile(aPath.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
+
+    ModelMeshes modelMeshes;
+    processNode(mScene->mRootNode, modelMeshes);
+
+    return modelMeshes;
+}
+
+void ModelLoader::processNode(const aiNode* aNode, ModelMeshes& aModelMeshes)
 {
     for (size_t i = 0; i < aNode->mNumMeshes; ++i)
     {
@@ -60,7 +65,7 @@ void Model::processNode(const aiNode* aNode, const aiScene* aScene)
         std::vector<Vertex> vertices;
 
         const auto meshId = aNode->mMeshes[i];
-        const auto mesh = aScene->mMeshes[meshId];
+        const auto mesh = mScene->mMeshes[meshId];
 
         for (size_t i = 0; i < mesh->mNumVertices; ++i)
         {
@@ -93,7 +98,7 @@ void Model::processNode(const aiNode* aNode, const aiScene* aScene)
         std::vector<Texture> textures;
 
         const auto materialId = mesh->mMaterialIndex;
-        const auto& material = aScene->mMaterials[materialId];
+        const auto& material = mScene->mMaterials[materialId];
 
         // We iterates through all types of texture and if we have already downloaded
         // it we remove the texture from mActiveTypes. This is necessary so that we
@@ -121,12 +126,12 @@ void Model::processNode(const aiNode* aNode, const aiScene* aScene)
             }
         }
 
-        mMeshes.emplace_back(Mesh(vertices, indices, textures));
+        aModelMeshes.emplace_back(Mesh(vertices, indices, textures));
     }
 
     for (size_t i = 0; i < aNode->mNumChildren; ++i)
     {
-        processNode(aNode->mChildren[i], aScene);
+        processNode(aNode->mChildren[i], aModelMeshes);
     }
 }
 

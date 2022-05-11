@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include <glad/glad.h>
 #include <glm/vec4.hpp>
@@ -15,6 +16,7 @@ struct Data
     bool mLeftMousePressed{ false };
     bool mRightMousePressed{ false };
 
+    std::unordered_map<size_t, ModelMeshes> mModelMeshesContainer;
     std::vector<Model> mModels;
 
     glm::vec4 mClearColor;
