@@ -8,8 +8,10 @@
 void Projective::calcProjSpace(GLuint aProgramId) noexcept
 {
     const auto aspect = System::getWindowParameters().mWidth / static_cast<float>(System::getWindowParameters().mHeight);
-    projSpace = glm::perspective(mFovy, aspect, mNear, mFar);
-    Utils::setUniformMat4(aProgramId, "uProjection", projSpace);
+    mProjSpace = glm::perspective(mFovy, aspect, mNear, mFar);
+
+    glUseProgram(aProgramId);
+    Utils::setUniformMat4(aProgramId, "uProjection", mProjSpace);
 }
 
 void Camera::roundMove(const glm::vec2& aOffset) noexcept
@@ -60,6 +62,8 @@ void Camera::calcViewSpace(GLuint aProgramId) noexcept
     const auto camZ = sinf(glm::radians(mPitch)) * cosf(glm::radians(mYaw)) * mRadius + mCenter.z;
 
     mViewSpace = glm::lookAt(glm::vec3(camX, camY, camZ), mCenter, mWorldUp);
+
+    glUseProgram(aProgramId);
     Utils::setUniformMat4(aProgramId, "uView", mViewSpace);
 }
 

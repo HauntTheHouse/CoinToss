@@ -7,7 +7,7 @@
 
 struct Projective
 {
-    glm::mat4 projSpace;
+    glm::mat4 mProjSpace;
 
     float mFovy{ 45.0f };
     float mNear{ 0.1f };

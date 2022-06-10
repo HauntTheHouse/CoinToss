@@ -10,10 +10,10 @@
 		"radius": 0.7,
 		"pitch": 70.0,
 		"yaw": 0.0,
-		
+
 		"center": [0.0, 0.3, 0.0],
 		"world-up": [0.0, 1.0, 0.0],
-		
+
 		"round-move-sensitivity": 0.1,
 		"flat-move-sensitivity": 0.001,
 		"zoom-sensitivity": 0.05
@@ -28,23 +28,42 @@
 	[
 		{
 			"path": "models/table/RoundTable.obj",
+			"collision-shape-parameters":
+			{
+				"shape-type": "cylinderY",
+				"radius": 0.95,
+				"height": 0.2922
+			},
 			"models-properties":
 			[
 				{
 					"position": [0.0, 0.0, 0.0],
 					"rotation": [[1.0, 1.0, 1.0], 0.0],
-					"scale": [1.0, 1.0, 1.0]
+					"scale": [1.0, 1.0, 1.0],
+					"rigid-body-parameters":
+					{
+						"body-type": "static"
+					}
 				}
 			]
 		},
 		{
 			"path": "models/coin/PirateCoin.obj",
+			"collision-shape-parameters":
+			{
+				"shape-type": "cylinderY"
+			},
 			"models-properties":
 			[
 				{
-					"position": [0.0, 0.4, 0.0],
-					"rotation": [[1.0, 1.0, 1.0], 0.0],
-					"scale": [1.0, 1.0, 1.0]
+					"position": [0.0, 1.0, 0.0],
+					"rotation": [[1.0, 0.0, 0.0], 60.0],
+					"scale": [1.0, 1.0, 1.0],
+					"rigid-body-parameters":
+					{
+						"body-type": "dynamic",
+						"mass": 0.01
+					}
 				}
 			]
 		}

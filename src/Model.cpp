@@ -10,8 +10,8 @@
 #include "Utils.h"
 #include "System.h"
 
-Model::Model(size_t aModelMeshesId)
-    : mModelMeshesId(aModelMeshesId)
+Model::Model(size_t aId)
+    : mId(aId)
 {
 }
 
@@ -19,7 +19,7 @@ void Model::render(GLuint aProgramId) const
 {
     Utils::setUniformMat4(aProgramId, "uModel", mTransform);
 
-    for (const auto& mesh : System::getData().mModelMeshesContainer[mModelMeshesId])
+    for (const auto& mesh : System::getData().mModelMeshesContainer[mId])
     {
         mesh.render(aProgramId);
     }
@@ -27,15 +27,10 @@ void Model::render(GLuint aProgramId) const
 
 void Model::clear()
 {
-    for (auto& mesh : System::getData().mModelMeshesContainer[mModelMeshesId])
+    for (auto& mesh : System::getData().mModelMeshesContainer[mId])
     {
         mesh.clear();
     }
-}
-
-void Model::setTransform(const glm::mat4& aTransform)
-{
-    mTransform = aTransform;
 }
 
 ModelMeshes ModelLoader::load(const std::string& aPath)

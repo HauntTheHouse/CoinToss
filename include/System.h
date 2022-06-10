@@ -3,6 +3,7 @@
 #include "WindowParameters.h"
 #include "Data.h"
 #include "Camera.h"
+#include "Physics.h"
 
 class System
 {
@@ -11,6 +12,7 @@ public:
     static Data& getData() { return getInstance().mData; }
     static Camera& getCamera() { return getInstance().mCamera; }
     static Projective& getProjective() { return getInstance().mProjective; }
+    static Physics& getPhysics() { return getInstance().mPhysics; }
 
 private:
     System() = default;
@@ -27,4 +29,5 @@ private:
     Data mData;
     Camera mCamera;
     Projective mProjective;
+    Physics mPhysics;
 };

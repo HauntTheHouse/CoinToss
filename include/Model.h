@@ -28,6 +28,7 @@ struct Mesh
 	~Mesh() = default;
 	void render(GLuint aProgramId) const;
 	void clear();
+	const std::vector<Vertex>& getVertices() const { return mVertices; }
 
 private:
 	std::vector<Vertex> mVertices;
@@ -72,10 +73,6 @@ public:
     void render(GLuint aProgramId) const;
 	void clear();
 
-	void setTransform(const glm::mat4& aTransform);
-
-private:
-	size_t mModelMeshesId;
-
+	size_t mId;
 	glm::mat4 mTransform;
 };

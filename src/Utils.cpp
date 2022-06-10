@@ -4,12 +4,15 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <limits>
 
 #include <json/json.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stb_image.h>
+
+#include <btBulletCollisionCommon.h>
 
 #include "System.h"
 
@@ -65,13 +68,33 @@ namespace Utils
             const auto path = models[i].get("path", "").asString();
             const auto hash = getHash(path);
 
+            auto& modelMeshesContainer = System::getData().mModelMeshesContainer;
+            if (modelMeshesContainer.find(hash) == modelMeshesContainer.end())
             {
                 ModelLoader modelLoader;
                 ModelMeshes modelMeshes = modelLoader.load(path);
-                auto& modelMeshesContainer = System::getData().mModelMeshesContainer;
-                if (modelMeshesContainer.find(hash) == modelMeshesContainer.end())
-                    modelMeshesContainer.insert({ hash, std::move(modelMeshes) });
+                modelMeshesContainer.insert({ hash, std::move(modelMeshes) });
             }
+
+            btCollisionShape* shape = nullptr;
+            const auto& shapeParameters = models[i]["collision-shape-parameters"];
+            const auto shapeType = shapeParameters.get("shape-type", "").asString();
+            auto& cylinders = System::getData().mCylinderShapesContainer;
+            if (shapeType == "cylinderY" && cylinders.find(hash) == cylinders.end())
+            {
+                float cylinderRadius = shapeParameters.get("radius", 0.0f).asFloat();
+                float cylinderHeight = shapeParameters.get("height", 0.0f).asFloat();
+                if (cylinderHeight == 0.0f || cylinderRadius == 0.0f)
+                {
+                    const auto [radius, height] = Utils::calculateCylinderParameters(modelMeshesContainer[hash], Utils::Axis::Y);
+                    cylinderRadius = radius;
+                    cylinderHeight = height;
+                }
+                auto cylinderShape = btCylinderShape(btVector3(cylinderRadius, cylinderHeight, cylinderRadius));
+                cylinders.insert({ hash, std::move(cylinderShape) });
+                shape = &cylinders.at(hash);
+            }
+            assert(shape);
 
             const auto& modelsProperties = models[i]["models-properties"];
             for (int j = 0; j < modelsProperties.size(); ++j)
@@ -105,7 +128,29 @@ namespace Utils
                 transform = glm::translate(transform, position);
                 transform = glm::rotate(transform, angle, rotateAxis);
                 transform = glm::scale(transform, scale);
-                System::getData().mModels.back().setTransform(transform);
+                System::getData().mModels.back().mTransform = std::move(transform);
+
+                auto& rigidBodyParameters = modelsProperties[j]["rigid-body-parameters"];
+                const auto& rigidBodyType = rigidBodyParameters.get("body-type", "").asString();
+                auto& rigidBodies = System::getData().mRigidBodiesContainer;
+                if (rigidBodyType == "dynamic")
+                {
+                    auto& motionStates = System::getData().mMotionStatesContainer;
+                    motionStates.insert({ hash, MotionState(System::getData().mModels.back().mTransform) });
+
+                    btScalar mass = rigidBodyParameters.get("mass", 1.0f).asFloat();
+                    btVector3 inertia;
+                    shape->calculateLocalInertia(mass, inertia);
+
+                    btRigidBody rigidBody(mass, &motionStates.at(hash), shape, inertia);
+                    rigidBodies.insert({ hash, std::move(rigidBody) });
+                }
+                else if (rigidBodyType == "static")
+                {
+                    btRigidBody rigidBody(BT_ZERO, nullptr, shape);
+                    rigidBodies.insert({ hash, std::move(rigidBody) });
+                }
+                System::getPhysics().mDynamicWorld.addRigidBody(&rigidBodies.at(hash));
             }
         }
     }
@@ -207,6 +252,51 @@ namespace Utils
     size_t getHash(const std::string& aString)
     {
         return std::hash<std::string>()(aString);
+    }
+
+    CylinderParameters calculateCylinderParameters(const ModelMeshes& aModelMeshes, Axis aAxis)
+    {
+        std::vector<glm::vec2> positions2d;
+
+        size_t positionsNum = 0;
+        for (const auto& mesh : aModelMeshes)
+        {
+            positionsNum += mesh.getVertices().size();
+        }
+        positions2d.reserve(positionsNum);
+
+        for (const auto& mesh : aModelMeshes)
+        {
+            const auto& vertices = mesh.getVertices();
+            for (const auto& vertex : vertices)
+            {
+                switch (aAxis)
+                {
+                case Axis::X:
+                    positions2d.push_back({ vertex.mPosition.z, vertex.mPosition.x });
+                    break;
+                case Axis::Y:
+                    positions2d.push_back({ vertex.mPosition.x, vertex.mPosition.y });
+                    break;
+                case Axis::Z:
+                    positions2d.push_back({ vertex.mPosition.y, vertex.mPosition.z });
+                    break;
+                }
+            }
+        }
+
+        auto min = glm::vec2(std::numeric_limits<float>::max());
+        auto max = glm::vec2(std::numeric_limits<float>::min());
+
+        for (const auto& position : positions2d)
+        {
+            if (position.x < min.x || (position.x == min.x && position.y < min.y))
+                min = position;
+            if (position.x > max.x || (position.x == max.x && position.y > max.y))
+                max = position;
+        }
+
+        return CylinderParameters{ (max.x - min.x)/2.0f, (max.y - min.y)/2.0f };
     }
 
     void setUniformMat4(GLuint aProgramId, const GLchar* aName, const glm::mat4& aValue) noexcept
