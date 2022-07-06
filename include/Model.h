@@ -26,7 +26,7 @@ struct Mesh
 {
 	Mesh(std::vector<Vertex> aVertices, std::vector<unsigned int> aIndices, std::vector<Texture> aTextures);
 	~Mesh() = default;
-	void render(GLuint aProgramId) const;
+	void render() const;
 	void clear();
 	const std::vector<Vertex>& getVertices() const { return mVertices; }
 
@@ -70,7 +70,7 @@ public:
     Model() = default;
     Model(size_t aModelMeshesId);
 
-    void render(GLuint aProgramId) const;
+    void render() const;
 	void clear();
 
 	size_t mId;

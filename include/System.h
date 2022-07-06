@@ -2,6 +2,7 @@
 
 #include "WindowParameters.h"
 #include "Data.h"
+#include "Shader.h"
 #include "Camera.h"
 #include "Physics.h"
 

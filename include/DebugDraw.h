@@ -21,7 +21,7 @@ public:
 	void setDebugMode(int debugMode) override {};
 
 private:
-	GLuint mProgramId;
+	//GLuint mProgramId{ 0 };
 
 	struct DebugDrawVertex
 	{
@@ -30,5 +30,5 @@ private:
 	};
 	std::vector<DebugDrawVertex> mVertices;
 
-	GLuint mVAO, mVBO;
+	GLuint mVAO{ 0 }, mVBO{ 0 };
 };

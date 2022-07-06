@@ -13,7 +13,7 @@ struct Projective
     float mNear{ 0.1f };
     float mFar{ 100.0f };
 
-    void calcProjSpace(GLuint aProgramId) noexcept;
+    void calcProjSpace() noexcept;
 };
 
 struct Camera
@@ -38,5 +38,5 @@ struct Camera
     void zoomMove(float aOffset) noexcept;
 
     glm::vec2 calcOffset() noexcept;
-    void calcViewSpace(GLuint aProgramId) noexcept;
+    void calcViewSpace() noexcept;
 };

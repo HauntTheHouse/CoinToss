@@ -12,8 +12,6 @@ namespace Utils
 {
 	void initGlobals() noexcept;
 
-	GLuint compileShader(const char* aPath, GLenum aShaderType) noexcept;
-	GLuint createProgram(const std::vector<GLuint>& aShaderIds) noexcept;
 	GLuint loadTexture(const char* aPath) noexcept;
 
 	size_t getHash(const std::string& aString);
@@ -28,6 +26,4 @@ namespace Utils
 		float height;
 	};
 	CylinderParameters calculateCylinderParameters(const ModelMeshes& aModelMeshes, Axis aAxis);
-
-	void setUniformMat4(GLuint aProgramId, const GLchar* aName, const glm::mat4& aValue) noexcept;
 }

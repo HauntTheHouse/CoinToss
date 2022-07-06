@@ -3,15 +3,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "System.h"
-#include "Utils.h"
+#include "Shader.h"
 
-void Projective::calcProjSpace(GLuint aProgramId) noexcept
+void Projective::calcProjSpace() noexcept
 {
     const auto aspect = System::getWindowParameters().mWidth / static_cast<float>(System::getWindowParameters().mHeight);
     mProjSpace = glm::perspective(mFovy, aspect, mNear, mFar);
-
-    glUseProgram(aProgramId);
-    Utils::setUniformMat4(aProgramId, "uProjection", mProjSpace);
 }
 
 void Camera::roundMove(const glm::vec2& aOffset) noexcept
@@ -55,15 +52,12 @@ glm::vec2 Camera::calcOffset() noexcept
     return glm::vec2(xOffset, yOffset);
 }
 
-void Camera::calcViewSpace(GLuint aProgramId) noexcept
+void Camera::calcViewSpace() noexcept
 {
     const auto camX = sinf(glm::radians(mPitch)) * sinf(glm::radians(mYaw)) * mRadius + mCenter.x;
     const auto camY = cosf(glm::radians(mPitch)) * mRadius + mCenter.y;
     const auto camZ = sinf(glm::radians(mPitch)) * cosf(glm::radians(mYaw)) * mRadius + mCenter.z;
 
     mViewSpace = glm::lookAt(glm::vec3(camX, camY, camZ), mCenter, mWorldUp);
-
-    glUseProgram(aProgramId);
-    Utils::setUniformMat4(aProgramId, "uView", mViewSpace);
 }
 

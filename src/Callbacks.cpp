@@ -1,8 +1,9 @@
 #include "Callbacks.h"
 
 #include <iostream>
+
 #include "System.h"
-#include "Utils.h"
+#include "Shader.h"
 
 namespace Glfw
 {
@@ -15,7 +16,11 @@ namespace Glfw
     {
         System::getWindowParameters().mWidth = width;
         System::getWindowParameters().mHeight = height;
-        System::getProjective().calcProjSpace(System::getData().mProgramId);
+
+        System::getProjective().calcProjSpace();
+
+        Shader::setActiveProgramId(System::getData().mModelsProgramId);
+        Shader::setUniformMat4("uProjection", System::getProjective().mProjSpace);
     }
 
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
@@ -51,6 +56,9 @@ namespace Glfw
     {
         auto& camera = System::getCamera();
         camera.zoomMove(yoffset);
-        camera.calcViewSpace(System::getData().mProgramId);
+        camera.calcViewSpace();
+
+        Shader::setActiveProgramId(System::getData().mModelsProgramId);
+        Shader::setUniformMat4("uView", camera.mViewSpace);
     }
 }

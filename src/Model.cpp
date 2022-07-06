@@ -7,21 +7,22 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "Utils.h"
+#include "Shader.h"
 #include "System.h"
+#include "Utils.h"
 
 Model::Model(size_t aId)
     : mId(aId)
 {
 }
 
-void Model::render(GLuint aProgramId) const
+void Model::render() const
 {
-    Utils::setUniformMat4(aProgramId, "uModel", mTransform);
+    Shader::setUniformMat4("uModel", mTransform);
 
     for (const auto& mesh : System::getData().mModelMeshesContainer[mId])
     {
-        mesh.render(aProgramId);
+        mesh.render();
     }
 }
 
@@ -157,13 +158,13 @@ Mesh::Mesh(std::vector<Vertex> aVertices, std::vector<unsigned int> aIndices, st
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, mTexCoords));
 }
 
-void Mesh::render(GLuint aProgramId) const
+void Mesh::render() const
 {
     for (size_t i = 0; i < mTextures.size(); ++i)
     {
         glActiveTexture(GL_TEXTURE0 + i);
 
-        glUniform1i(glGetUniformLocation(aProgramId, mTextures[i].mUniformName.c_str()), i);
+        Shader::setUniformTexture(mTextures[i].mUniformName.c_str(), i);
         glBindTexture(GL_TEXTURE_2D, mTextures[i].mId);
     }
 

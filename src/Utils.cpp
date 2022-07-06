@@ -155,64 +155,6 @@ namespace Utils
         }
     }
 
-    GLuint compileShader(const char* aPath, GLenum aShaderType) noexcept
-    {
-        std::ifstream shaderFile(aPath);
-        std::stringstream buff;
-        buff << shaderFile.rdbuf();
-        const auto shaderStr = buff.str();
-        const auto shaderCStr = shaderStr.c_str();
-
-        const auto shaderId = glCreateShader(aShaderType);
-        glShaderSource(shaderId, 1, &shaderCStr, 0);
-        glCompileShader(shaderId);
-
-        // check compiling errors
-        GLint success;
-        const GLsizei logSize = 256;
-        GLchar infoLog[logSize];
-        glGetShaderiv(shaderId, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(shaderId, logSize, nullptr, infoLog);
-            std::cerr << "ERROR: Shader compilation failed\n" << infoLog << std::endl;
-            exit(-4);
-        }
-
-        return shaderId;
-    }
-
-    GLuint createProgram(const std::vector<GLuint>& aShaderIds) noexcept
-    {
-        const auto program = glCreateProgram();
-
-        for (auto shaderId : aShaderIds)
-        {
-            glAttachShader(program, shaderId);
-        }
-
-        glLinkProgram(program);
-
-        for (auto shaderId : aShaderIds)
-        {
-            glDetachShader(program, shaderId);
-            glDeleteShader(shaderId);
-        }
-
-        // check linking errors
-        GLint success;
-        const GLsizei logSize = 256;
-        GLchar infoLog[logSize];
-        glGetProgramiv(program, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(program, logSize, nullptr, infoLog);
-            std::cout << "ERROR: Program linking failed\n" << infoLog << std::endl;
-        }
-
-        return program;
-    }
-
     GLuint loadTexture(const char* aPath) noexcept
     {
         int width, height, numChannels;
@@ -297,11 +239,5 @@ namespace Utils
         }
 
         return CylinderParameters{ (max.x - min.x)/2.0f, (max.y - min.y)/2.0f };
-    }
-
-    void setUniformMat4(GLuint aProgramId, const GLchar* aName, const glm::mat4& aValue) noexcept
-    {
-        const auto location = glGetUniformLocation(aProgramId, aName);
-        glUniformMatrix4fv(location, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&aValue));
     }
 }

@@ -8,6 +8,7 @@
 #include "System.h"
 #include "Gui.h"
 #include "Utils.h"
+#include "Shader.h"
 #include "Model.h"
 #include "MotionState.h"
 #include "DeltaTime.h"
@@ -24,14 +25,16 @@ int main()
 
     auto& data = System::getData();
 
-    const auto vertexShaderId = Utils::compileShader("shaders/object.vert", GL_VERTEX_SHADER);
-    const auto fragmentShaderId = Utils::compileShader("shaders/object.frag", GL_FRAGMENT_SHADER);
-    data.mProgramId = Utils::createProgram({ vertexShaderId, fragmentShaderId });
+    const auto vertexShaderId = Shader::compileShader("shaders/object.vert", GL_VERTEX_SHADER);
+    const auto fragmentShaderId = Shader::compileShader("shaders/object.frag", GL_FRAGMENT_SHADER);
+    data.mModelsProgramId = Shader::createProgram({vertexShaderId, fragmentShaderId});
+    Shader::setActiveProgramId(data.mModelsProgramId);
 
-    glUseProgram(data.mProgramId);
+    System::getProjective().calcProjSpace();
+    Shader::setUniformMat4("uProjection", System::getProjective().mProjSpace);
 
-    System::getProjective().calcProjSpace(data.mProgramId);
-    System::getCamera().calcViewSpace(data.mProgramId);
+    System::getCamera().calcViewSpace();
+    Shader::setUniformMat4("uView", System::getCamera().mViewSpace);
 
     glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
@@ -89,25 +92,34 @@ inline void processInput() noexcept
     {
         const auto offset = camera.calcOffset();
         camera.roundMove(offset);
-        camera.calcViewSpace(System::getData().mProgramId);
+
+        camera.calcViewSpace();
+
+        Shader::setActiveProgramId(System::getData().mModelsProgramId);
+        Shader::setUniformMat4("uView", camera.mViewSpace);
     }
     else if (System::getData().mRightMousePressed)
     {
         const auto offset = camera.calcOffset();
         camera.flatMove(offset);
-        camera.calcViewSpace(System::getData().mProgramId);
+
+        camera.calcViewSpace();
+
+        Shader::setActiveProgramId(System::getData().mModelsProgramId);
+        Shader::setUniformMat4("uView", camera.mViewSpace);
     }
 }
 
 inline void render() noexcept
 {
-    glUseProgram(System::getData().mProgramId);
+    Shader::setActiveProgramId(System::getData().mModelsProgramId);
     for (const auto& model : System::getData().mModels)
     {
-        model.render(System::getData().mProgramId);
+        model.render();
     }
 
     System::getPhysics().mDynamicWorld.debugDrawWorld();
+    Shader::setActiveProgramId(System::getData().mDebugDrawProgramId);
     System::getData().mDebugDraw.render();
 
     Gui::render();
