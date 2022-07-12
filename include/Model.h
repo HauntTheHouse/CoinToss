@@ -9,6 +9,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <assimp/material.h>
+#include <assimp/scene.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
@@ -44,10 +46,6 @@ private:
 };
 
 using ModelMeshes = std::vector<Mesh>;
-
-enum aiTextureType;
-struct aiScene;
-struct aiNode;
 
 class ModelLoader
 {

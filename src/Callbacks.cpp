@@ -55,7 +55,7 @@ namespace Glfw
     void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     {
         auto& camera = System::getCamera();
-        camera.zoomMove(yoffset);
+        camera.zoomMove(static_cast<float>(yoffset));
         camera.calcViewSpace();
 
         Shader::setActiveProgramId(System::getData().mModelsProgramId);

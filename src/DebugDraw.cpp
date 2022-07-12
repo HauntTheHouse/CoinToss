@@ -28,7 +28,7 @@ void DebugDraw::render()
 	Shader::setUniformMat4("uProjection", System::getProjective().mProjSpace);
 	Shader::setUniformMat4("uView", System::getCamera().mViewSpace);
 
-	glDrawArrays(GL_LINES, 0, mVertices.size());
+	glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mVertices.size()));
 	mVertices.clear();
 }
 

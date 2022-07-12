@@ -105,7 +105,7 @@ void ModelLoader::processNode(const aiNode* aNode)
                 for (size_t i = 0; i < material->GetTextureCount(it->mType); ++i)
                 {
                     aiString str;
-                    const auto texture = material->GetTexture(it->mType, i, &str);
+                    const auto texture = material->GetTexture(it->mType, static_cast<unsigned int>(i), &str);
                     const auto texturePath = mDirectory + str.C_Str();
 
                     tmpTexture.mId = Utils::loadTexture(texturePath.c_str());
@@ -160,14 +160,14 @@ void Mesh::render() const
 {
     for (size_t i = 0; i < mTextures.size(); ++i)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
+        glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(i));
 
-        Shader::setUniformTexture(mTextures[i].mUniformName.c_str(), i);
+        Shader::setUniformTexture(mTextures[i].mUniformName.c_str(), static_cast<GLint>(i));
         glBindTexture(GL_TEXTURE_2D, mTextures[i].mId);
     }
 
     glBindVertexArray(mVAO);
-    glDrawElements(GL_TRIANGLES, mIndices.size(), GL_UNSIGNED_INT, nullptr);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(mIndices.size()), GL_UNSIGNED_INT, nullptr);
 }
 
 void Mesh::clear()
