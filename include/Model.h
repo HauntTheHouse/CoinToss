@@ -2,12 +2,17 @@
 
 #include <vector>
 #include <string>
+#include <memory>
 
 #include <glad/glad.h>
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
+#include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+
+#include <MotionState.h>
 
 struct Vertex
 {
@@ -47,10 +52,12 @@ struct aiNode;
 class ModelLoader
 {
 public:
-	ModelMeshes load(const std::string& aPath);
+	static ModelMeshes load(const std::string& aPath);
 
 private:
-	void processNode(const aiNode* aNode, ModelMeshes& aModelMeshes);
+	ModelLoader(const std::string& aPath);
+
+	void processNode(const aiNode* aNode);
 
 	struct TextureType
 	{
@@ -60,7 +67,7 @@ private:
 	std::vector<TextureType> mActiveTypes;
 
 	const aiScene* mScene;
-
+	ModelMeshes mModelMeshes;
 	std::string mDirectory;
 };
 
@@ -68,11 +75,15 @@ class Model
 {
 public:
     Model() = default;
-    Model(size_t aModelMeshesId);
 
     void render() const;
 	void clear();
 
 	size_t mId;
-	glm::mat4 mTransform;
+
+	std::shared_ptr<ModelMeshes> mModelMeshes;
+
+	std::shared_ptr<btCollisionShape> mCollisionShape;
+	std::shared_ptr<btRigidBody> mRigidBody;
+	std::shared_ptr<MotionState> mMotionState;
 };

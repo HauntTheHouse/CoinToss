@@ -22,11 +22,12 @@ struct Data
 
     DebugDraw mDebugDraw;
 
-    std::unordered_map<size_t, ModelMeshes> mModelMeshesContainer;
+    //std::vector<ModelMeshes> mModelMeshesContainer;
+    //std::vector<btCollisionShape> mCylinderShapeContainer;
+    //std::vector<MotionState> mMotionStateContainer;
+    //std::vector<btRigidBody> mRigidBodyContainer;
 
-    std::unordered_map<size_t, btCylinderShape> mCylinderShapesContainer;
-    std::unordered_map<size_t, MotionState> mMotionStatesContainer;
-    std::unordered_map<size_t, btRigidBody> mRigidBodiesContainer;
+    std::vector<glm::mat4> mTransformContainer;
 
     std::vector<Model> mModels;
 

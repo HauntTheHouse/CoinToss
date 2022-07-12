@@ -40,12 +40,12 @@ namespace Utils
         camera.mZoomSensitivity = pref["camera"].get("zoom-sensitivity", 0.1f).asFloat();
 
         const auto& center = pref["camera"]["center"];
-        for (int i = 0; i < center.size(); ++i)
+        for (Json::Value::ArrayIndex i = 0; i < center.size(); ++i)
         {
             System::getCamera().mCenter[i] = center[i].asFloat();
         }
         const auto& worldUp = pref["camera"]["world-up"];
-        for (int i = 0; i < worldUp.size(); ++i)
+        for (Json::Value::ArrayIndex i = 0; i < worldUp.size(); ++i)
         {
             System::getCamera().mWorldUp[i] = worldUp[i].asFloat();
         }
@@ -56,54 +56,47 @@ namespace Utils
         proj.mFar  = pref["projective"].get("far", 100).asFloat();
 
         const auto& color = pref["clear-color"];
-        for (int i = 0; i < color.size(); ++i)
+        for (Json::Value::ArrayIndex i = 0; i < color.size(); ++i)
         {
             System::getData().mClearColor[i] = color[i].asFloat();
         }
 
         const auto& models = pref["models"];
-        System::getData().mModels.resize(models.size());
-        for (int i = 0; i < models.size(); ++i)
+        for (Json::Value::ArrayIndex i = 0; i < models.size(); ++i)
         {
             const auto path = models[i].get("path", "").asString();
-            const auto hash = getHash(path);
+            const auto modelMeshes = std::make_shared<ModelMeshes>(ModelLoader::load(path));
 
-            auto& modelMeshesContainer = System::getData().mModelMeshesContainer;
-            if (modelMeshesContainer.find(hash) == modelMeshesContainer.end())
-            {
-                ModelLoader modelLoader;
-                ModelMeshes modelMeshes = modelLoader.load(path);
-                modelMeshesContainer.insert({ hash, std::move(modelMeshes) });
-            }
-
-            btCollisionShape* shape = nullptr;
+            std::shared_ptr<btCollisionShape> shape;
             const auto& shapeParameters = models[i]["collision-shape-parameters"];
             const auto shapeType = shapeParameters.get("shape-type", "").asString();
-            auto& cylinders = System::getData().mCylinderShapesContainer;
-            if (shapeType == "cylinderY" && cylinders.find(hash) == cylinders.end())
+            if (shapeType == "cylinderY")
             {
                 float cylinderRadius = shapeParameters.get("radius", 0.0f).asFloat();
                 float cylinderHeight = shapeParameters.get("height", 0.0f).asFloat();
                 if (cylinderHeight == 0.0f || cylinderRadius == 0.0f)
                 {
-                    const auto [radius, height] = Utils::calculateCylinderParameters(modelMeshesContainer[hash], Utils::Axis::Y);
+                    const auto [radius, height] = Utils::calculateCylinderParameters(*modelMeshes, Utils::Axis::Y);
                     cylinderRadius = radius;
                     cylinderHeight = height;
                 }
-                auto cylinderShape = btCylinderShape(btVector3(cylinderRadius, cylinderHeight, cylinderRadius));
-                cylinders.insert({ hash, std::move(cylinderShape) });
-                shape = &cylinders.at(hash);
+                shape = std::make_shared<btCylinderShape>(btVector3(cylinderRadius, cylinderHeight, cylinderRadius));
             }
             assert(shape);
 
             const auto& modelsProperties = models[i]["models-properties"];
-            for (int j = 0; j < modelsProperties.size(); ++j)
+            for (Json::Value::ArrayIndex j = 0; j < modelsProperties.size(); ++j)
             {
-                System::getData().mModels.emplace_back(Model(hash));
+                auto model = Model();
+                static size_t id = 0;
+
+                model.mId = id++;
+                model.mModelMeshes    = modelMeshes;
+                model.mCollisionShape = shape;
 
                 glm::vec3 position;
                 const auto& posJson = modelsProperties[j]["position"];
-                for (int k = 0; k < posJson.size(); ++k)
+                for (Json::Value::ArrayIndex k = 0; k < posJson.size(); ++k)
                 {
                     position[k] = posJson[k].asFloat();
                 }
@@ -111,7 +104,7 @@ namespace Utils
                 glm::vec3 rotateAxis;
                 float angle;
                 const auto& rotJson = modelsProperties[j]["rotation"];
-                for (int k = 0; k < rotJson[0].size(); ++k)
+                for (Json::Value::ArrayIndex k = 0; k < rotJson[0].size(); ++k)
                 {
                     rotateAxis[k] = rotJson[0][k].asFloat();
                 }
@@ -119,38 +112,34 @@ namespace Utils
 
                 glm::vec3 scale;
                 const auto& scaleJson = modelsProperties[j]["scale"];
-                for (int k = 0; k < scaleJson.size(); ++k)
+                for (Json::Value::ArrayIndex k = 0; k < scaleJson.size(); ++k)
                 {
                     scale[k] = scaleJson[k].asFloat();
                 }
 
-                glm::mat4 transform(1.0f);
+                auto transform = glm::mat4(1.0f);
                 transform = glm::translate(transform, position);
                 transform = glm::rotate(transform, angle, rotateAxis);
                 transform = glm::scale(transform, scale);
-                System::getData().mModels.back().mTransform = std::move(transform);
+                System::getData().mTransformContainer.emplace_back(std::move(transform));
 
                 auto& rigidBodyParameters = modelsProperties[j]["rigid-body-parameters"];
                 const auto& rigidBodyType = rigidBodyParameters.get("body-type", "").asString();
-                auto& rigidBodies = System::getData().mRigidBodiesContainer;
                 if (rigidBodyType == "dynamic")
                 {
-                    auto& motionStates = System::getData().mMotionStatesContainer;
-                    motionStates.insert({ hash, MotionState(System::getData().mModels.back().mTransform) });
+                    model.mMotionState = std::make_shared<MotionState>(model.mId);
 
                     btScalar mass = rigidBodyParameters.get("mass", 1.0f).asFloat();
                     btVector3 inertia;
                     shape->calculateLocalInertia(mass, inertia);
-
-                    btRigidBody rigidBody(mass, &motionStates.at(hash), shape, inertia);
-                    rigidBodies.insert({ hash, std::move(rigidBody) });
+                    model.mRigidBody = std::make_shared<btRigidBody>(mass, model.mMotionState.get(), model.mCollisionShape.get(), inertia);
                 }
                 else if (rigidBodyType == "static")
                 {
-                    btRigidBody rigidBody(BT_ZERO, nullptr, shape);
-                    rigidBodies.insert({ hash, std::move(rigidBody) });
+                    model.mRigidBody = std::make_shared<btRigidBody>(BT_ZERO, nullptr, model.mCollisionShape.get());
                 }
-                System::getPhysics().mDynamicWorld.addRigidBody(&rigidBodies.at(hash));
+                System::getPhysics().mDynamicWorld.addRigidBody(model.mRigidBody.get());
+                System::getData().mModels.emplace_back(std::move(model));
             }
         }
     }

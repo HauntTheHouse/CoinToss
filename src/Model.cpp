@@ -11,16 +11,11 @@
 #include "System.h"
 #include "Utils.h"
 
-Model::Model(size_t aId)
-    : mId(aId)
-{
-}
-
 void Model::render() const
 {
-    Shader::setUniformMat4("uModel", mTransform);
+    Shader::setUniformMat4("uModel", System::getData().mTransformContainer[mId]);
 
-    for (const auto& mesh : System::getData().mModelMeshesContainer[mId])
+    for (const auto& mesh : *mModelMeshes)
     {
         mesh.render();
     }
@@ -28,13 +23,13 @@ void Model::render() const
 
 void Model::clear()
 {
-    for (auto& mesh : System::getData().mModelMeshesContainer[mId])
+    for (auto& mesh : *mModelMeshes)
     {
         mesh.clear();
     }
 }
 
-ModelMeshes ModelLoader::load(const std::string& aPath)
+ModelLoader::ModelLoader(const std::string& aPath)
 {
     mDirectory = (aPath.substr(0, aPath.find_last_of('/') + 1));
 
@@ -47,13 +42,16 @@ ModelMeshes ModelLoader::load(const std::string& aPath)
     Assimp::Importer importer;
     mScene = importer.ReadFile(aPath.c_str(), aiProcessPreset_TargetRealtime_MaxQuality);
 
-    ModelMeshes modelMeshes;
-    processNode(mScene->mRootNode, modelMeshes);
-
-    return modelMeshes;
+    processNode(mScene->mRootNode);
 }
 
-void ModelLoader::processNode(const aiNode* aNode, ModelMeshes& aModelMeshes)
+ModelMeshes ModelLoader::load(const std::string& aPath)
+{
+    auto modelLoader = ModelLoader(aPath);
+    return modelLoader.mModelMeshes;
+}
+
+void ModelLoader::processNode(const aiNode* aNode)
 {
     for (size_t i = 0; i < aNode->mNumMeshes; ++i)
     {
@@ -122,12 +120,12 @@ void ModelLoader::processNode(const aiNode* aNode, ModelMeshes& aModelMeshes)
             }
         }
 
-        aModelMeshes.emplace_back(Mesh(vertices, indices, textures));
+        mModelMeshes.emplace_back(Mesh(vertices, indices, textures));
     }
 
     for (size_t i = 0; i < aNode->mNumChildren; ++i)
     {
-        processNode(aNode->mChildren[i], aModelMeshes);
+        processNode(aNode->mChildren[i]);
     }
 }
 
