@@ -88,6 +88,12 @@ namespace Shader
         glUniformMatrix4fv(location, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&aValue));
     }
 
+    void setUniformVec3(const GLchar* aName, const glm::vec3& aValue) noexcept
+    {
+        const auto location = glGetUniformLocation(Shader::getActiveProgramId(), aName);
+        glUniform3f(location, static_cast<GLfloat>(aValue.x), static_cast<GLfloat>(aValue.y), static_cast<GLfloat>(aValue.z));
+    }
+
     void setUniformTexture(const GLchar* aName, GLint aTextureId) noexcept
     {
         const auto location = glGetUniformLocation(Shader::getActiveProgramId(), aName);

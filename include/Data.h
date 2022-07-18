@@ -31,5 +31,7 @@ struct Data
 
     std::vector<Model> mModels;
 
+    glm::vec3 mLightColor;
+    glm::vec3 mLightDir;
     glm::vec4 mClearColor;
 };

@@ -56,9 +56,6 @@ namespace Glfw
     {
         auto& camera = System::getCamera();
         camera.zoomMove(static_cast<float>(yoffset));
-        camera.calcViewSpace();
-
-        Shader::setActiveProgramId(System::getData().mModelsProgramId);
-        Shader::setUniformMat4("uView", camera.mViewSpace);
+        camera.updateCamera();
     }
 }

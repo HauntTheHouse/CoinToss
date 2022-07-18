@@ -18,6 +18,21 @@
 
 namespace Utils
 {
+    namespace
+    {
+        template <typename Vec>
+        Vec readVector(const Json::Value& aJsonVector)
+        {
+            assert(Vec::length() == aJsonVector.size());
+            Vec vec{};
+            for (Json::Value::ArrayIndex i = 0; i < aJsonVector.size(); ++i)
+            {
+                vec[i] = aJsonVector[i].asFloat();
+            }
+            return vec;
+        }
+    }
+
     void initGlobals() noexcept
     {
         Json::Value pref;
@@ -39,27 +54,17 @@ namespace Utils
         camera.mFlatMoveSensitivity = pref["camera"].get("flat-move-sensitivity", 0.005f).asFloat();
         camera.mZoomSensitivity = pref["camera"].get("zoom-sensitivity", 0.1f).asFloat();
 
-        const auto& center = pref["camera"]["center"];
-        for (Json::Value::ArrayIndex i = 0; i < center.size(); ++i)
-        {
-            System::getCamera().mCenter[i] = center[i].asFloat();
-        }
-        const auto& worldUp = pref["camera"]["world-up"];
-        for (Json::Value::ArrayIndex i = 0; i < worldUp.size(); ++i)
-        {
-            System::getCamera().mWorldUp[i] = worldUp[i].asFloat();
-        }
+        System::getCamera().mCenter  = readVector<glm::vec3>(pref["camera"]["center"]);
+        System::getCamera().mWorldUp = readVector<glm::vec3>(pref["camera"]["world-up"]);
 
         auto& proj = System::getProjective();
         proj.mFovy = pref["projective"].get("fovy", 45).asFloat();
         proj.mNear = pref["projective"].get("near", 0.1).asFloat();
         proj.mFar  = pref["projective"].get("far", 100).asFloat();
 
-        const auto& color = pref["clear-color"];
-        for (Json::Value::ArrayIndex i = 0; i < color.size(); ++i)
-        {
-            System::getData().mClearColor[i] = color[i].asFloat();
-        }
+        System::getData().mLightColor = readVector<glm::vec3>(pref["light-color"]);
+        System::getData().mLightDir   = readVector<glm::vec3>(pref["light-direction"]);
+        System::getData().mClearColor = readVector<glm::vec4>(pref["clear-color"]);
 
         const auto& models = pref["models"];
         for (Json::Value::ArrayIndex i = 0; i < models.size(); ++i)
@@ -94,28 +99,13 @@ namespace Utils
                 model.mModelMeshes    = modelMeshes;
                 model.mCollisionShape = shape;
 
-                glm::vec3 position;
-                const auto& posJson = modelsProperties[j]["position"];
-                for (Json::Value::ArrayIndex k = 0; k < posJson.size(); ++k)
-                {
-                    position[k] = posJson[k].asFloat();
-                }
+                const auto position = readVector<glm::vec3>(modelsProperties[j]["position"]);
 
-                glm::vec3 rotateAxis;
-                float angle;
                 const auto& rotJson = modelsProperties[j]["rotation"];
-                for (Json::Value::ArrayIndex k = 0; k < rotJson[0].size(); ++k)
-                {
-                    rotateAxis[k] = rotJson[0][k].asFloat();
-                }
-                angle = glm::radians(rotJson[1].asFloat());
+                const auto rotateAxis = readVector<glm::vec3>(rotJson[0]);
+                const float angle = glm::radians(rotJson[1].asFloat());
 
-                glm::vec3 scale;
-                const auto& scaleJson = modelsProperties[j]["scale"];
-                for (Json::Value::ArrayIndex k = 0; k < scaleJson.size(); ++k)
-                {
-                    scale[k] = scaleJson[k].asFloat();
-                }
+                const auto scale = readVector<glm::vec3>(modelsProperties[j]["scale"]);
 
                 auto transform = glm::mat4(1.0f);
                 transform = glm::translate(transform, position);
@@ -162,7 +152,7 @@ namespace Utils
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        GLenum format;
+        GLenum format{};
         if (numChannels == 1)
             format = GL_RED;
         else if (numChannels == 2)

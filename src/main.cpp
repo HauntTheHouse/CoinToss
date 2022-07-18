@@ -35,6 +35,10 @@ int main()
 
     System::getCamera().calcViewSpace();
     Shader::setUniformMat4("uView", System::getCamera().mViewSpace);
+    Shader::setUniformVec3("uCameraPosition", System::getCamera().mCamPosition);
+
+    Shader::setUniformVec3("uLightColor", System::getData().mLightColor);
+    Shader::setUniformVec3("uLightDir", glm::normalize(System::getData().mLightDir));
 
     glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
@@ -90,23 +94,15 @@ inline void processInput() noexcept
     auto& camera = System::getCamera();
     if (System::getData().mLeftMousePressed)
     {
-        const auto offset = camera.calcOffset();
-        camera.roundMove(offset);
-
-        camera.calcViewSpace();
-
-        Shader::setActiveProgramId(System::getData().mModelsProgramId);
-        Shader::setUniformMat4("uView", camera.mViewSpace);
+        auto offset = camera.calcOffset();
+        camera.roundMove(std::move(offset));
+        camera.updateCamera();
     }
     else if (System::getData().mRightMousePressed)
     {
-        const auto offset = camera.calcOffset();
-        camera.flatMove(offset);
-
-        camera.calcViewSpace();
-
-        Shader::setActiveProgramId(System::getData().mModelsProgramId);
-        Shader::setUniformMat4("uView", camera.mViewSpace);
+        auto offset = camera.calcOffset();
+        camera.flatMove(std::move(offset));
+        camera.updateCamera();
     }
 }
 

@@ -11,7 +11,7 @@ void Projective::calcProjSpace() noexcept
     mProjSpace = glm::perspective(mFovy, aspect, mNear, mFar);
 }
 
-void Camera::roundMove(const glm::vec2& aOffset) noexcept
+void Camera::roundMove(glm::vec2 aOffset) noexcept
 {
     mYaw -= aOffset.x * mRoundMoveSensitivity;
     mPitch -= aOffset.y * mRoundMoveSensitivity;
@@ -22,7 +22,7 @@ void Camera::roundMove(const glm::vec2& aOffset) noexcept
         mPitch = 179.0f;
 }
 
-void Camera::flatMove(const glm::vec2& aOffset) noexcept
+void Camera::flatMove(glm::vec2 aOffset) noexcept
 {
     auto centerViewSpace = mViewSpace * glm::vec4(mCenter, 1.0f);
     centerViewSpace.x -= aOffset.x * mFlatMoveSensitivity;
@@ -54,10 +54,18 @@ glm::vec2 Camera::calcOffset() noexcept
 
 void Camera::calcViewSpace() noexcept
 {
-    const auto camX = sinf(glm::radians(mPitch)) * sinf(glm::radians(mYaw)) * mRadius + mCenter.x;
-    const auto camY = cosf(glm::radians(mPitch)) * mRadius + mCenter.y;
-    const auto camZ = sinf(glm::radians(mPitch)) * cosf(glm::radians(mYaw)) * mRadius + mCenter.z;
+    mCamPosition.x = sinf(glm::radians(mPitch)) * sinf(glm::radians(mYaw)) * mRadius + mCenter.x;
+    mCamPosition.y = cosf(glm::radians(mPitch)) * mRadius + mCenter.y;
+    mCamPosition.z = sinf(glm::radians(mPitch)) * cosf(glm::radians(mYaw)) * mRadius + mCenter.z;
 
-    mViewSpace = glm::lookAt(glm::vec3(camX, camY, camZ), mCenter, mWorldUp);
+    mViewSpace = glm::lookAt(mCamPosition, mCenter, mWorldUp);
 }
 
+void Camera::updateCamera()
+{
+    calcViewSpace();
+
+    Shader::setActiveProgramId(System::getData().mModelsProgramId);
+    Shader::setUniformMat4("uView", mViewSpace);
+    Shader::setUniformVec3("uCameraPosition", mCamPosition);
+}
