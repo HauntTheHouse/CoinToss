@@ -15,7 +15,12 @@ void Model::render() const
 {
     Shader::setUniformMat4("uModel", System::getData().mTransformContainer[mId]);
 
-    for (const auto& mesh : *mModelMeshes)
+    Shader::setUniformVec3("uAmbientColor",  mModelsData->mAmbientColor);
+    Shader::setUniformVec3("uDiffuseColor",  mModelsData->mDiffuseColor);
+    Shader::setUniformVec3("uSpecularColor", mModelsData->mSpecularColor);
+    Shader::setUniformFloat("uSpecularExponent", mModelsData->mSpecularExponent);
+
+    for (const auto& mesh : mModelsData->mModelMeshes)
     {
         mesh.render();
     }
@@ -23,7 +28,7 @@ void Model::render() const
 
 void Model::clear()
 {
-    for (auto& mesh : *mModelMeshes)
+    for (auto& mesh : mModelsData->mModelMeshes)
     {
         mesh.clear();
     }
@@ -45,10 +50,10 @@ ModelLoader::ModelLoader(const std::string& aPath)
     processNode(mScene->mRootNode);
 }
 
-ModelMeshes ModelLoader::load(const std::string& aPath)
+ModelsData ModelLoader::load(const std::string& aPath)
 {
     auto modelLoader = ModelLoader(aPath);
-    return modelLoader.mModelMeshes;
+    return modelLoader.mModelsData;
 }
 
 void ModelLoader::processNode(const aiNode* aNode)
@@ -61,13 +66,13 @@ void ModelLoader::processNode(const aiNode* aNode)
         const auto meshId = aNode->mMeshes[i];
         const auto mesh = mScene->mMeshes[meshId];
 
-        for (size_t i = 0; i < mesh->mNumVertices; ++i)
+        for (size_t j = 0; j < mesh->mNumVertices; ++j)
         {
             Vertex tmpVertex;
 
-            const auto& vertex = mesh->mVertices[i];
-            const auto& normal = mesh->mNormals[i];
-            const auto& texCoords = mesh->mTextureCoords[0][i];
+            const auto& vertex = mesh->mVertices[j];
+            const auto& normal = mesh->mNormals[j];
+            const auto& texCoords = mesh->mTextureCoords[0][j];
 
             tmpVertex.mPosition = glm::vec3(vertex.x, vertex.y, vertex.z);
             tmpVertex.mNormal = glm::vec3(normal.x, normal.y, normal.z);
@@ -79,12 +84,12 @@ void ModelLoader::processNode(const aiNode* aNode)
         // Add indices
         std::vector<GLuint> indices;
 
-        for (size_t i = 0; i < mesh->mNumFaces; ++i)
+        for (size_t j = 0; j < mesh->mNumFaces; ++j)
         {
-            const auto& face = mesh->mFaces[i];
-            for (size_t j = 0; j < face.mNumIndices; ++j)
+            const auto& face = mesh->mFaces[j];
+            for (size_t k = 0; k < face.mNumIndices; ++k)
             {
-                indices.emplace_back(face.mIndices[j]);
+                indices.emplace_back(face.mIndices[k]);
             }
         }
 
@@ -92,7 +97,43 @@ void ModelLoader::processNode(const aiNode* aNode)
         std::vector<Texture> textures;
 
         const auto materialId = mesh->mMaterialIndex;
-        const auto& material = mScene->mMaterials[materialId];
+        const auto material = mScene->mMaterials[materialId];
+
+        auto numProperties = material->mNumProperties;
+        for (unsigned int j = 0; j < numProperties; ++j)
+        {
+            const auto prop = material->mProperties[j];
+
+            if (prop->mKey == aiString("$clr.ambient"))
+            {
+                assert(prop->mType == aiPTI_Float && prop->mDataLength == 12);
+                for (int k = 0; k < 3; ++k)
+                {
+                    mModelsData.mAmbientColor[k] = reinterpret_cast<float*>(prop->mData)[k];
+                }
+            }
+            else if (prop->mKey == aiString("$clr.diffuse"))
+            {
+                assert(prop->mType == aiPTI_Float && prop->mDataLength == 12);
+                for (int k = 0; k < 3; ++k)
+                {
+                    mModelsData.mDiffuseColor[k] = reinterpret_cast<float*>(prop->mData)[k];
+                }
+            }
+            else if (prop->mKey == aiString("$clr.specular"))
+            {
+                assert(prop->mType == aiPTI_Float && prop->mDataLength == 12);
+                for (int k = 0; k < 3; ++k)
+                {
+                    mModelsData.mSpecularColor[k] = reinterpret_cast<float*>(prop->mData)[k];
+                }
+            }
+            else if (prop->mKey == aiString("$mat.shininess"))
+            {
+                assert(prop->mType == aiPTI_Float && prop->mDataLength == 4);
+                mModelsData.mSpecularExponent = reinterpret_cast<float*>(prop->mData)[0];
+            }
+        }
 
         // We iterates through all types of texture and if we have already downloaded
         // it we remove the texture from mActiveTypes. This is necessary so that we
@@ -102,10 +143,10 @@ void ModelLoader::processNode(const aiNode* aNode)
             if (material->GetTextureCount(it->mType))
             {
                 Texture tmpTexture;
-                for (size_t i = 0; i < material->GetTextureCount(it->mType); ++i)
+                for (size_t j = 0; j < material->GetTextureCount(it->mType); ++j)
                 {
                     aiString str;
-                    const auto texture = material->GetTexture(it->mType, static_cast<unsigned int>(i), &str);
+                    const auto texture = material->GetTexture(it->mType, static_cast<unsigned int>(j), &str);
                     const auto texturePath = mDirectory + str.C_Str();
 
                     tmpTexture.mId = Utils::loadTexture(texturePath.c_str());
@@ -120,7 +161,7 @@ void ModelLoader::processNode(const aiNode* aNode)
             }
         }
 
-        mModelMeshes.emplace_back(Mesh(vertices, indices, textures));
+        mModelsData.mModelMeshes.emplace_back(Mesh(vertices, indices, textures));
     }
 
     for (size_t i = 0; i < aNode->mNumChildren; ++i)

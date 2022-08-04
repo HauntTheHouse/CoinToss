@@ -70,7 +70,7 @@ namespace Utils
         for (Json::Value::ArrayIndex i = 0; i < models.size(); ++i)
         {
             const auto path = models[i].get("path", "").asString();
-            const auto modelMeshes = std::make_shared<ModelMeshes>(ModelLoader::load(path));
+            const auto modelsData = std::make_shared<ModelsData>(ModelLoader::load(path));
 
             std::shared_ptr<btCollisionShape> shape;
             const auto& shapeParameters = models[i]["collision-shape-parameters"];
@@ -81,7 +81,7 @@ namespace Utils
                 float cylinderHeight = shapeParameters.get("height", 0.0f).asFloat();
                 if (cylinderHeight == 0.0f || cylinderRadius == 0.0f)
                 {
-                    const auto [radius, height] = Utils::calculateCylinderParameters(*modelMeshes, Utils::Axis::Y);
+                    const auto [radius, height] = Utils::calculateCylinderParameters(modelsData->mModelMeshes, Utils::Axis::Y);
                     cylinderRadius = radius;
                     cylinderHeight = height;
                 }
@@ -95,8 +95,8 @@ namespace Utils
                 auto model = Model();
                 static size_t id = 0;
 
-                model.mId = id++;
-                model.mModelMeshes    = modelMeshes;
+                model.mId             = id++;
+                model.mModelsData     = modelsData;
                 model.mCollisionShape = shape;
 
                 const auto position = readVector<glm::vec3>(modelsProperties[j]["position"]);
@@ -117,16 +117,16 @@ namespace Utils
                 const auto& rigidBodyType = rigidBodyParameters.get("body-type", "").asString();
                 if (rigidBodyType == "dynamic")
                 {
-                    model.mMotionState = std::make_shared<MotionState>(model.mId);
+                    model.mMotionState = std::make_unique<MotionState>(model.mId);
 
                     btScalar mass = rigidBodyParameters.get("mass", 1.0f).asFloat();
                     btVector3 inertia;
                     shape->calculateLocalInertia(mass, inertia);
-                    model.mRigidBody = std::make_shared<btRigidBody>(mass, model.mMotionState.get(), model.mCollisionShape.get(), inertia);
+                    model.mRigidBody = std::make_unique<btRigidBody>(mass, model.mMotionState.get(), model.mCollisionShape.get(), inertia);
                 }
                 else if (rigidBodyType == "static")
                 {
-                    model.mRigidBody = std::make_shared<btRigidBody>(BT_ZERO, nullptr, model.mCollisionShape.get());
+                    model.mRigidBody = std::make_unique<btRigidBody>(BT_ZERO, nullptr, model.mCollisionShape.get());
                 }
                 System::getPhysics().mDynamicWorld.addRigidBody(model.mRigidBody.get());
                 System::getData().mModels.emplace_back(std::move(model));

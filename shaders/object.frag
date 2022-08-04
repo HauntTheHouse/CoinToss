@@ -14,9 +14,10 @@ uniform vec3 uCameraPosition;
 uniform vec3 uLightColor;
 uniform vec3 uLightDir;
 
-float ambientStrength = 0.1f;
-float diffuseStrength = 1.0f;
-float specularStrength = 1.0f;
+uniform vec3 uAmbientColor;
+uniform vec3 uDiffuseColor;
+uniform vec3 uSpecularColor;
+uniform float uSpecularExponent;
 
 void main()
 {
@@ -25,15 +26,15 @@ void main()
 
 	vec3 normal = normalize(fNormal);
 
-	vec3 ambient = uLightColor * ambientStrength;
+	vec3 ambient = uLightColor * uAmbientColor;
 
 	float diffuseSignificance = max(dot(normal, -uLightDir), 0.0f);
-	vec3 diffuse = uLightColor * diffuseSignificance * diffuseStrength;
+	vec3 diffuse = uLightColor * diffuseSignificance * uDiffuseColor;
 
 	vec3 reflectDir = reflect(uLightDir, normal);
 	vec3 cameraDir = normalize(uCameraPosition - fFragPos);
-	float specularSignificance = pow(max(dot(reflectDir, cameraDir), 0.0f), 32);
-	vec3 specular = uLightColor * specularSignificance * specularStrength;
+	float specularSignificance = pow(max(dot(reflectDir, cameraDir), 0.0f), uSpecularExponent);
+	vec3 specular = uLightColor * specularSignificance * uSpecularColor;
 
 	vec3 resultColor = fragColor * (ambient + diffuse + specular);
 	FragColor = vec4(resultColor, 1.0f);

@@ -82,6 +82,12 @@ namespace Shader
         return mActiveProgramId;
     }
 
+    void setUniformFloat(const GLchar* aName, float aValue) noexcept
+    {
+        const auto location = glGetUniformLocation(Shader::getActiveProgramId(), aName);
+        glUniform1f(location, static_cast<GLfloat>(aValue));
+    }
+
     void setUniformMat4(const GLchar* aName, const glm::mat4& aValue) noexcept
     {
         const auto location = glGetUniformLocation(Shader::getActiveProgramId(), aName);

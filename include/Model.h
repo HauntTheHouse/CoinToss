@@ -47,10 +47,20 @@ private:
 
 using ModelMeshes = std::vector<Mesh>;
 
+struct ModelsData
+{
+	glm::vec3 mAmbientColor;
+	glm::vec3 mDiffuseColor;
+	glm::vec3 mSpecularColor;
+	float mSpecularExponent;
+
+	ModelMeshes mModelMeshes;
+};
+
 class ModelLoader
 {
 public:
-	static ModelMeshes load(const std::string& aPath);
+	static ModelsData load(const std::string& aPath);
 
 private:
 	ModelLoader(const std::string& aPath);
@@ -65,7 +75,7 @@ private:
 	std::vector<TextureType> mActiveTypes;
 
 	const aiScene* mScene;
-	ModelMeshes mModelMeshes;
+	ModelsData mModelsData;
 	std::string mDirectory;
 };
 
@@ -79,9 +89,8 @@ public:
 
 	size_t mId;
 
-	std::shared_ptr<ModelMeshes> mModelMeshes;
-
+	std::shared_ptr<ModelsData> mModelsData;
 	std::shared_ptr<btCollisionShape> mCollisionShape;
-	std::shared_ptr<btRigidBody> mRigidBody;
-	std::shared_ptr<MotionState> mMotionState;
+	std::unique_ptr<btRigidBody> mRigidBody;
+	std::unique_ptr<MotionState> mMotionState;
 };
