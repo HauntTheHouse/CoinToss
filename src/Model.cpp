@@ -41,7 +41,7 @@ ModelLoader::ModelLoader(const std::string& aPath)
     mActiveTypes = {
         { aiTextureType_DIFFUSE,  "uTextureDiffuse" },
         { aiTextureType_SPECULAR, "uTextureSpecular" },
-        //{ aiTextureType_HEIGHT, "textureNormal" }
+        { aiTextureType_HEIGHT,   "uTextureNormal" }
     };
 
     Assimp::Importer importer;
@@ -70,12 +70,16 @@ void ModelLoader::processNode(const aiNode* aNode)
         {
             Vertex tmpVertex;
 
-            const auto& vertex = mesh->mVertices[j];
-            const auto& normal = mesh->mNormals[j];
+            const auto& vertex    = mesh->mVertices[j];
+            const auto& normal    = mesh->mNormals[j];
+            const auto& tangent   = mesh->mTangents[j];
+            const auto& bitangent = mesh->mBitangents[j];
             const auto& texCoords = mesh->mTextureCoords[0][j];
 
-            tmpVertex.mPosition = glm::vec3(vertex.x, vertex.y, vertex.z);
-            tmpVertex.mNormal = glm::vec3(normal.x, normal.y, normal.z);
+            tmpVertex.mPosition  = glm::vec3(vertex.x,    vertex.y,    vertex.z);
+            tmpVertex.mNormal    = glm::vec3(normal.x,    normal.y,    normal.z);
+            tmpVertex.mTangent   = glm::vec3(tangent.x,   tangent.y,   tangent.z);
+            tmpVertex.mBitangent = glm::vec3(bitangent.x, bitangent.y, bitangent.z);
             tmpVertex.mTexCoords = glm::vec2(texCoords.x, texCoords.y);
 
             vertices.emplace_back(std::move(tmpVertex));
@@ -195,6 +199,12 @@ Mesh::Mesh(std::vector<Vertex> aVertices, std::vector<unsigned int> aIndices, st
 
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, mTexCoords));
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, mTangent));
+
+    glEnableVertexAttribArray(4);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, mBitangent));
 }
 
 void Mesh::render() const

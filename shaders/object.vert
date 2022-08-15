@@ -2,10 +2,12 @@
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aNormal;
 layout(location = 2) in vec2 aTextureCoord;
+layout(location = 3) in vec3 aTangent;
+layout(location = 4) in vec3 aBitangent;
 
-layout(location = 0) out vec3 fFragPos;
-layout(location = 1) out vec3 fNormal;
-layout(location = 2) out vec2 fTextureCoord;
+out vec3 fFragPos;
+out vec2 fTextureCoord;
+out mat3 fTBN;
 
 uniform mat4 uProjection;
 uniform mat4 uView;
@@ -17,7 +19,11 @@ void main()
 	gl_Position = uProjection * uView * modelSpasePos;
 
 	fFragPos = vec3(modelSpasePos);
-
-	fNormal = mat3(transpose(inverse(uModel))) * aNormal;
 	fTextureCoord = aTextureCoord;
+
+	// apply mat3(transpose(inverse(uModel))) when using non-uniform scaling
+	vec3 T = normalize(vec3(uModel * vec4(aTangent,   0.0)));
+    vec3 B = normalize(vec3(uModel * vec4(aBitangent, 0.0)));
+    vec3 N = normalize(vec3(uModel * vec4(aNormal,    0.0)));
+    fTBN = mat3(T, B, N);
 }

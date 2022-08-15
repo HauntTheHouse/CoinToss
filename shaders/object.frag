@@ -1,13 +1,14 @@
 #version 330 core
 
-layout(location = 0) in vec3 fFragPos;
-layout(location = 1) in vec3 fNormal;
-layout(location = 2) in vec2 fTextureCoord;
+in vec3 fFragPos;
+in vec2 fTextureCoord;
+in mat3 fTBN;
 
 out vec4 FragColor;
 
 uniform sampler2D uTextureDiffuse;
 uniform sampler2D uTextureSpecular;
+uniform sampler2D uTextureNormal;
 
 uniform vec3 uCameraPosition;
 
@@ -24,7 +25,9 @@ void main()
 	vec3 fragColor = vec3(texture(uTextureDiffuse, fTextureCoord));
 	vec3 specColor = vec3(texture(uTextureSpecular, fTextureCoord));
 
-	vec3 normal = normalize(fNormal);
+	vec3 normal = vec3(texture(uTextureNormal, fTextureCoord));
+	normal = normal * 2.0f - 1.0f;
+	normal = normalize(fTBN * normal);
 
 	vec3 ambient = uLightColor * uAmbientColor;
 
