@@ -7,7 +7,7 @@ void DebugDraw::init()
 {
 	const auto vertexShaderId = Shader::compileShader("shaders/debug_draw.vert", GL_VERTEX_SHADER);
 	const auto fragmentShaderId = Shader::compileShader("shaders/debug_draw.frag", GL_FRAGMENT_SHADER);
-	System::getData().mDebugDrawProgramId = Shader::createProgram({ vertexShaderId, fragmentShaderId });
+	mProgramId = Shader::createProgram({ vertexShaderId, fragmentShaderId });
 
 	glGenVertexArrays(1, &mVAO);
 	glGenBuffers(1, &mVBO);
@@ -25,6 +25,7 @@ void DebugDraw::render()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(DebugDrawVertex), (void*)offsetof(DebugDrawVertex, color));
 
+	Shader::setActiveProgramId(mProgramId);
 	Shader::setUniformMat4("uProjection", System::getProjective().mProjSpace);
 	Shader::setUniformMat4("uView", System::getCamera().mViewSpace);
 

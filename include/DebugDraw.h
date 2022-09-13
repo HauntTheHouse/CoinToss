@@ -21,7 +21,7 @@ public:
 	void setDebugMode(int debugMode) override {};
 
 private:
-	//GLuint mProgramId{ 0 };
+	GLuint mProgramId{ 0 };
 
 	struct DebugDrawVertex
 	{

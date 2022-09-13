@@ -15,7 +15,6 @@
 struct Data
 {
     GLuint mModelsProgramId;
-    GLuint mDebugDrawProgramId;
 
     bool mLeftMousePressed{ false };
     bool mRightMousePressed{ false };

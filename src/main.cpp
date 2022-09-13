@@ -115,7 +115,6 @@ inline void render() noexcept
     }
 
     System::getPhysics().mDynamicWorld.debugDrawWorld();
-    Shader::setActiveProgramId(System::getData().mDebugDrawProgramId);
     System::getData().mDebugDraw.render();
 
     Gui::render();
