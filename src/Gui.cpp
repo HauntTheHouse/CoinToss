@@ -36,9 +36,20 @@ namespace Gui
     void menuWindow() noexcept
     {
         ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::ColorEdit3("Clear color", &System::getData().mClearColor.x);
         ImGui::SetWindowPos(ImVec2{ System::getWindowParameters().mWidth - ImGui::GetWindowWidth(), 0.0f });
-        bIsMenuActive = ImGui::IsItemActive();
+
+        ImGui::ColorEdit3("Clear color", &System::getData().mClearColor.x);
+
+        auto& lightDir = System::getData().mLightDir;
+        ImGui::SliderFloat3("Light direction", &lightDir.x, -1.0f, 1.0f);
+        if (ImGui::IsItemActive())
+        {
+            lightDir = glm::normalize(lightDir);
+            Shader::setActiveProgramId(System::getData().mModelsProgramId);
+            Shader::setUniformVec3("uLightDir", lightDir);
+        }
+
+        bIsMenuActive = ImGui::IsAnyItemActive();
         ImGui::End();
     }
 

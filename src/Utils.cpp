@@ -63,7 +63,7 @@ namespace Utils
         proj.mFar  = pref["projective"].get("far", 100).asFloat();
 
         System::getData().mLightColor = readVector<glm::vec3>(pref["light-color"]);
-        System::getData().mLightDir   = readVector<glm::vec3>(pref["light-direction"]);
+        System::getData().mLightDir   = glm::normalize(readVector<glm::vec3>(pref["light-direction"]));
         System::getData().mClearColor = readVector<glm::vec4>(pref["clear-color"]);
 
         const auto& models = pref["models"];

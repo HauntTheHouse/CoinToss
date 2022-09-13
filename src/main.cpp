@@ -38,7 +38,7 @@ int main()
     Shader::setUniformVec3("uCameraPosition", System::getCamera().mCamPosition);
 
     Shader::setUniformVec3("uLightColor", System::getData().mLightColor);
-    Shader::setUniformVec3("uLightDir", glm::normalize(System::getData().mLightDir));
+    Shader::setUniformVec3("uLightDir", System::getData().mLightDir);
 
     glViewport(0, 0, System::getWindowParameters().mWidth, System::getWindowParameters().mHeight);
 
