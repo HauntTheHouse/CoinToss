@@ -79,6 +79,10 @@ inline void init() noexcept
 
     glEnable(GL_DEPTH_TEST);
 
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
     Gui::init();
 
     System::getPhysics().mDynamicWorld.setGravity(btVector3(BT_ZERO, btScalar(-9.8f), BT_ZERO));
