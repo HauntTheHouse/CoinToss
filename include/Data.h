@@ -11,10 +11,18 @@
 #include "Model.h"
 #include "MotionState.h"
 #include "DebugDraw.h"
+#include "Framebuffer.h"
+#include "Plane.h"
 
 struct Data
 {
     GLuint mModelsProgramId;
+
+    GLuint mDepthProgramId;
+    Framebuffer mDepthFramebuffer;
+
+    GLuint mDepthToColorProgramId;
+    Framebuffer mDepthToColorFramebuffer;
 
     bool mLeftMousePressed{ false };
     bool mRightMousePressed{ false };
@@ -29,6 +37,7 @@ struct Data
     std::vector<glm::mat4> mTransformContainer;
 
     std::vector<Model> mModels;
+    Plane mPlane;
 
     glm::vec3 mLightColor;
     glm::vec3 mLightDir;

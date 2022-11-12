@@ -49,6 +49,8 @@ namespace Gui
             Shader::setUniformVec3("uLightDir", lightDir);
         }
 
+        ImTextureID texId = (ImTextureID)System::getData().mDepthToColorFramebuffer.getTexture();
+        ImGui::Image(texId, ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
         bIsMenuActive = ImGui::IsAnyItemActive();
         ImGui::End();
     }
